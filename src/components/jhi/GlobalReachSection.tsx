@@ -39,7 +39,7 @@ function StatItem({ value, label, numericValue, suffix }: StatItemProps) {
 
   return (
     <div ref={ref} className="text-center p-6">
-      <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#c9a84c] mb-2">
+      <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#c9a84c] mb-2 drop-shadow-md">
         {isInView ? `${count}${suffix}` : value}
       </div>
       <div className="text-sm sm:text-base font-medium text-gray-500 dark:text-gray-400">
@@ -48,75 +48,6 @@ function StatItem({ value, label, numericValue, suffix }: StatItemProps) {
     </div>
   );
 }
-
-// Static animation values to avoid Math.random() hydration mismatch
-const mapDots = [
-  // North America
-  { x: 140, y: 120, dur: 2.5, begin: 0.3 },
-  { x: 160, y: 110, dur: 3.2, begin: 0.8 },
-  { x: 180, y: 130, dur: 2.8, begin: 1.2 },
-  { x: 150, y: 150, dur: 3.5, begin: 0.5 },
-  { x: 170, y: 140, dur: 2.3, begin: 1.6 },
-  { x: 130, y: 140, dur: 3.0, begin: 0.1 },
-  { x: 160, y: 160, dur: 2.7, begin: 1.8 },
-  { x: 190, y: 120, dur: 3.8, begin: 0.7 },
-  // South America
-  { x: 200, y: 220, dur: 2.6, begin: 1.1 },
-  { x: 210, y: 250, dur: 3.4, begin: 0.4 },
-  { x: 220, y: 270, dur: 2.9, begin: 1.5 },
-  { x: 190, y: 240, dur: 3.1, begin: 0.9 },
-  { x: 200, y: 280, dur: 2.4, begin: 1.9 },
-  { x: 215, y: 230, dur: 3.6, begin: 0.6 },
-  { x: 205, y: 260, dur: 2.2, begin: 1.3 },
-  // Europe
-  { x: 370, y: 100, dur: 3.3, begin: 0.2 },
-  { x: 390, y: 90, dur: 2.5, begin: 1.7 },
-  { x: 380, y: 110, dur: 3.9, begin: 0.8 },
-  { x: 400, y: 100, dur: 2.7, begin: 1.4 },
-  { x: 410, y: 120, dur: 3.2, begin: 0.5 },
-  { x: 360, y: 120, dur: 2.8, begin: 1.0 },
-  { x: 395, y: 115, dur: 3.5, begin: 0.3 },
-  // Africa
-  { x: 380, y: 190, dur: 2.3, begin: 1.6 },
-  { x: 390, y: 220, dur: 3.7, begin: 0.7 },
-  { x: 400, y: 240, dur: 2.6, begin: 1.2 },
-  { x: 370, y: 210, dur: 3.4, begin: 0.4 },
-  { x: 385, y: 250, dur: 2.9, begin: 1.8 },
-  { x: 395, y: 200, dur: 3.1, begin: 0.9 },
-  { x: 410, y: 230, dur: 2.4, begin: 1.5 },
-  // Asia
-  { x: 480, y: 110, dur: 3.6, begin: 0.6 },
-  { x: 520, y: 100, dur: 2.8, begin: 1.3 },
-  { x: 550, y: 120, dur: 3.3, begin: 0.2 },
-  { x: 500, y: 130, dur: 2.5, begin: 1.7 },
-  { x: 530, y: 110, dur: 3.0, begin: 0.8 },
-  { x: 560, y: 140, dur: 2.7, begin: 1.1 },
-  { x: 490, y: 150, dur: 3.8, begin: 0.4 },
-  { x: 540, y: 150, dur: 2.2, begin: 1.9 },
-  { x: 510, y: 100, dur: 3.5, begin: 0.5 },
-  { x: 570, y: 130, dur: 2.9, begin: 1.4 },
-  { x: 580, y: 110, dur: 3.2, begin: 0.3 },
-  { x: 470, y: 130, dur: 2.6, begin: 1.6 },
-  // Australia
-  { x: 600, y: 280, dur: 3.1, begin: 0.7 },
-  { x: 620, y: 290, dur: 2.4, begin: 1.2 },
-  { x: 630, y: 270, dur: 3.7, begin: 0.1 },
-  { x: 610, y: 300, dur: 2.8, begin: 1.8 },
-  { x: 640, y: 280, dur: 3.4, begin: 0.5 },
-  // Middle East
-  { x: 440, y: 160, dur: 2.5, begin: 1.0 },
-  { x: 450, y: 170, dur: 3.3, begin: 0.6 },
-  { x: 460, y: 150, dur: 2.9, begin: 1.5 },
-  { x: 430, y: 180, dur: 3.6, begin: 0.2 },
-];
-
-const connectionLines = [
-  [180, 130, 370, 100],
-  [370, 100, 520, 100],
-  [200, 220, 380, 190],
-  [520, 100, 600, 280],
-  [390, 90, 480, 110],
-];
 
 export function GlobalReachSection() {
   const { language } = useAppStore();
@@ -132,7 +63,7 @@ export function GlobalReachSection() {
   return (
     <section
       id="global-reach"
-      className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-b from-white via-[#fafafa] to-white dark:from-[#0a0a0a] dark:via-[#0d0d0d] dark:to-[#0a0a0a]"
+      className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-b from-white via-[#fafafa] to-white dark:from-[#0a0a0a] dark:via-[#111111] dark:to-[#0a0a0a]"
     >
       {/* Subtle grid pattern */}
       <div
@@ -145,71 +76,74 @@ export function GlobalReachSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <ScrollAnimation className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+        <ScrollAnimation className="text-center mb-16 relative z-20">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900 dark:text-white drop-shadow-sm">
             {t.globalReachTitle}
           </h2>
           <p className="text-lg max-w-2xl mx-auto text-gray-500 dark:text-gray-400">
             {t.globalReachSubtitle}
           </p>
-          <div className="mt-6 h-1 w-20 mx-auto bg-gradient-to-r from-[#c9a84c] via-[#e2c66d] to-[#c9a84c] rounded-full" />
+          <div className="mt-6 h-1 w-20 mx-auto bg-gradient-to-r from-[#c9a84c] via-[#e2c66d] to-[#c9a84c] rounded-full shadow-[0_0_10px_rgba(201,168,76,0.5)]" />
         </ScrollAnimation>
 
-        {/* World Map SVG */}
-        <ScrollAnimation delay={0.2} className="mb-16">
-          <div className="relative flex justify-center">
-            <svg
-              viewBox="0 0 800 400"
-              className="w-full max-w-3xl opacity-20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+        {/* Premium Dotted Map Visualization */}
+        <ScrollAnimation delay={0.2} className="mb-20">
+          <div className="relative w-full aspect-[2/1] max-w-5xl mx-auto flex justify-center items-center overflow-visible">
+            
+            {/* World Map Mask Layer */}
+            <div 
+              className="absolute inset-0 z-10 transition-transform duration-1000 ease-in-out hover:scale-105"
+              style={{
+                WebkitMaskImage: 'url("/world-map-mask.svg")',
+                WebkitMaskSize: 'contain',
+                WebkitMaskPosition: 'center',
+                WebkitMaskRepeat: 'no-repeat',
+                maskImage: 'url("/world-map-mask.svg")',
+                maskSize: 'contain',
+                maskPosition: 'center',
+                maskRepeat: 'no-repeat',
+                filter: 'drop-shadow(0px 0px 4px rgba(201, 168, 76, 0.4)) blur(0.5px)',
+              }}
             >
-              {/* Simplified world map dots with static animation values */}
-              {mapDots.map(({ x, y, dur, begin }, i) => (
-                <circle
-                  key={i}
-                  cx={x}
-                  cy={y}
-                  r={3}
-                  fill="#c9a84c"
-                  opacity={0.6}
-                >
-                  <animate
-                    attributeName="opacity"
-                    values="0.3;0.8;0.3"
-                    dur={`${dur}s`}
-                    begin={`${begin}s`}
-                    repeatCount="indefinite"
-                  />
-                </circle>
-              ))}
-              {/* Connection lines */}
-              {connectionLines.map(([x1, y1, x2, y2], i) => (
-                <line
-                  key={`line-${i}`}
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  stroke="#c9a84c"
-                  strokeWidth="0.5"
-                  opacity="0.2"
-                  strokeDasharray="4 4"
-                >
-                  <animate
-                    attributeName="stroke-dashoffset"
-                    values="0;8"
-                    dur="2s"
-                    repeatCount="indefinite"
-                  />
-                </line>
-              ))}
-            </svg>
+              {/* Dot Grid Mask Layer */}
+              <div 
+                className="absolute inset-0"
+                style={{
+                  WebkitMaskImage: 'radial-gradient(circle, black 1.5px, transparent 1.5px)',
+                  WebkitMaskSize: '10px 10px',
+                  maskImage: 'radial-gradient(circle, black 1.5px, transparent 1.5px)',
+                  maskSize: '10px 10px',
+                }}
+              >
+                {/* Base color for dots */}
+                <div className="absolute inset-0 bg-[#c9a84c]/20 dark:bg-[#c9a84c]/30" />
+                
+                {/* Animated glowing orbs behind dots for a dynamic "breathing" effect */}
+                <div className="absolute inset-0">
+                  <div className="absolute top-[20%] left-[20%] w-[40%] h-[40%] bg-[#e2c66d] rounded-full mix-blend-screen filter blur-[60px] animate-[pulse_6s_ease-in-out_infinite]" />
+                  <div className="absolute top-[30%] right-[20%] w-[50%] h-[50%] bg-[#c9a84c] rounded-full mix-blend-screen filter blur-[80px] animate-[pulse_7s_ease-in-out_infinite] [animation-delay:2s]" />
+                  <div className="absolute bottom-[20%] left-[30%] w-[45%] h-[45%] bg-[#f0d060] rounded-full mix-blend-screen filter blur-[70px] animate-[pulse_5s_ease-in-out_infinite] [animation-delay:1s]" />
+                  
+                  {/* Slow sweeping gradient for extra premium feel */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#ffffff]/20 to-transparent dark:via-[#ffffff]/10 animate-[spin_10s_linear_infinite] scale-[2]" />
+                </div>
+              </div>
+            </div>
+
+            {/* Connecting abstract lines (simulated) that float over the map */}
+            <div className="absolute inset-0 z-20 pointer-events-none opacity-40 mix-blend-screen filter blur-[1px]">
+               <svg viewBox="0 0 1000 500" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+                  <path d="M 250 150 Q 400 50 600 150" fill="none" stroke="#c9a84c" strokeWidth="1" strokeDasharray="4 4" className="animate-[pulse_3s_infinite_ease-in-out]" />
+                  <path d="M 300 300 Q 450 400 550 200" fill="none" stroke="#e2c66d" strokeWidth="1" strokeDasharray="3 6" className="animate-[pulse_4s_infinite_ease-in-out] [animation-delay:1s]" />
+                  <path d="M 600 150 Q 750 200 850 350" fill="none" stroke="#f0d060" strokeWidth="1.5" strokeDasharray="2 8" className="animate-[pulse_5s_infinite_ease-in-out] [animation-delay:2s]" />
+               </svg>
+            </div>
+            
           </div>
         </ScrollAnimation>
 
         {/* Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 rounded-2xl p-6 sm:p-8 border border-gray-100 dark:border-white/5 bg-white/80 dark:bg-white/[0.02]">
+        <div className="relative z-20 grid grid-cols-2 lg:grid-cols-4 gap-6 rounded-2xl p-6 sm:p-8 border border-gray-100 dark:border-white/5 bg-white/80 dark:bg-black/40 backdrop-blur-md shadow-xl transition-transform hover:-translate-y-1 duration-300">
           {stats.map(({ key, numericValue, suffix }) => (
             <StatItem
               key={key}

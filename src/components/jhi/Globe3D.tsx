@@ -1,132 +1,129 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Sphere, OrbitControls } from '@react-three/drei';
-import * as THREE from 'three';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
-function GlobeWireframe() {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+// ─── Destinations ─────────────────────────────────────────────────────────────
+const BRAZIL = { lat: -15.78, lng: -47.93 };
 
-  // Gold wireframe material
-  const wireframeMaterial = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#c9a84c'),
-        wireframe: true,
-        transparent: true,
-        opacity: 0.15,
-      }),
-    []
-  );
+const DESTINATIONS = [
+  { name: 'China', lat: 39.91, lng: 116.39, color: '#f4c542' },
+  { name: 'Japan', lat: 35.68, lng: 139.69, color: '#e8a020' },
+  { name: 'South Korea', lat: 37.57, lng: 126.98, color: '#d4943a' },
+  { name: 'India', lat: 28.61, lng: 77.21, color: '#c9a84c' },
+  { name: 'UAE', lat: 24.45, lng: 54.37, color: '#e2c66d' },
+  { name: 'Saudi Arabia', lat: 24.69, lng: 46.72, color: '#f0d060' },
+  { name: 'Turkey', lat: 39.93, lng: 32.86, color: '#c8803c' },
+  { name: 'Russia', lat: 55.75, lng: 37.62, color: '#b87030' },
+  { name: 'Indonesia', lat: -6.21, lng: 106.85, color: '#e0aa40' },
+  { name: 'Vietnam', lat: 21.02, lng: 105.83, color: '#d4943a' },
+  { name: 'Thailand', lat: 13.75, lng: 100.52, color: '#c9a84c' },
+  { name: 'Egypt', lat: 30.06, lng: 31.25, color: '#f0c030' },
+];
 
-  // Glow material
-  const glowMaterial = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#c9a84c'),
-        transparent: true,
-        opacity: 0.05,
-        side: THREE.BackSide,
-      }),
-    []
-  );
+const ARCS_DATA = DESTINATIONS.map((dst) => ({
+  startLat: BRAZIL.lat,
+  startLng: BRAZIL.lng,
+  endLat: dst.lat,
+  endLng: dst.lng,
+  color: [dst.color, '#ffffff'],
+  label: dst.name,
+}));
 
-  // Inner glow material
-  const innerGlowMaterial = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#d4a843'),
-        transparent: true,
-        opacity: 0.08,
-      }),
-    []
-  );
+const POINTS_DATA = [
+  // Brazil origin
+  { lat: BRAZIL.lat, lng: BRAZIL.lng, size: 0.6, color: '#ffffff', label: 'Brasil' },
+  // Destinations
+  ...DESTINATIONS.map((d) => ({ lat: d.lat, lng: d.lng, size: 0.3, color: d.color, label: d.name })),
+];
 
-  useFrame((state, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.08;
-      meshRef.current.rotation.x += delta * 0.02;
-    }
-    if (glowRef.current) {
-      glowRef.current.rotation.y -= delta * 0.03;
-    }
-  });
-
-  return (
-    <group>
-      {/* Main wireframe globe */}
-      <Sphere ref={meshRef} args={[2, 32, 32]} material={wireframeMaterial} />
-
-      {/* Outer glow */}
-      <Sphere ref={glowRef} args={[2.15, 32, 32]} material={glowMaterial} />
-
-      {/* Inner subtle glow */}
-      <Sphere args={[1.85, 32, 32]} material={innerGlowMaterial} />
-
-      {/* Equator ring */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[2.02, 0.005, 8, 100]} />
-        <meshBasicMaterial color="#c9a84c" transparent opacity={0.4} />
-      </mesh>
-
-      {/* Tilt ring */}
-      <mesh rotation={[Math.PI / 2.5, 0.3, 0]}>
-        <torusGeometry args={[2.05, 0.003, 8, 100]} />
-        <meshBasicMaterial color="#e2c66d" transparent opacity={0.25} />
-      </mesh>
-
-      {/* Latitude lines */}
-      {[-1, -0.5, 0.5, 1].map((y, i) => (
-        <mesh key={i} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[Math.sqrt(4 - y * y), 0.003, 8, 80]} />
-          <meshBasicMaterial color="#c9a84c" transparent opacity={0.15} />
-        </mesh>
-      ))}
-
-      {/* Floating particles */}
-      {Array.from({ length: 30 }).map((_, i) => {
-        const theta = (i / 30) * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        const r = 2.3 + Math.random() * 0.3;
-        return (
-          <mesh
-            key={`particle-${i}`}
-            position={[
-              r * Math.sin(phi) * Math.cos(theta),
-              r * Math.sin(phi) * Math.sin(theta),
-              r * Math.cos(phi),
-            ]}
-          >
-            <sphereGeometry args={[0.015, 8, 8]} />
-            <meshBasicMaterial color="#e2c66d" transparent opacity={0.6} />
-          </mesh>
-        );
-      })}
-    </group>
-  );
-}
-
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function Globe3D() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const globeRef = useRef<HTMLDivElement>(null);
+  const [dims, setDims] = useState({ w: 0, h: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const globeInstanceRef = useRef<any>(null);
+
+  // Measure container
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      setDims({ w: Math.round(width), h: Math.round(height) });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Build / rebuild globe imperatively once we have dimensions
+  const buildGlobe = useCallback(async () => {
+    if (!globeRef.current || dims.w === 0 || dims.h === 0) return;
+
+    // Lazy-load globe.gl (vanilla JS, not React) to avoid SSR issues
+    const GlobeModule = await import('globe.gl');
+    const GlobeLib = GlobeModule.default ?? GlobeModule;
+
+    // Destroy previous instance if any
+    if (globeInstanceRef.current) {
+      globeInstanceRef.current._destructor?.();
+      globeRef.current.innerHTML = '';
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const globe = (GlobeLib as any)({ animateIn: false })(globeRef.current as HTMLElement);
+    globeInstanceRef.current = globe;
+
+    globe
+      // ── Sizing ──────────────────────────────────────────────────────────
+      .width(dims.w)
+      .height(dims.h)
+
+      // ── Globe appearance ─────────────────────────────────────────────────
+      .backgroundColor('rgba(0,0,0,0)')
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+      .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+
+      // ── Trade route arcs ─────────────────────────────────────────────────
+      .arcsData(ARCS_DATA)
+      .arcColor('color')
+      .arcAltitudeAutoScale(0.5)   // auto-scales arc height with arc length → no clipping
+      .arcStroke(0.3)
+      .arcDashLength(0.4)
+      .arcDashGap(0.2)
+      .arcDashAnimateTime(1800)
+
+      // ── City points ───────────────────────────────────────────────────────
+      .pointsData(POINTS_DATA)
+      .pointColor('color')
+      .pointRadius('size')
+      .pointAltitude(0.01)
+      .pointsMerge(false);
+
+    // ── Camera ──────────────────────────────────────────────────────────────
+    // Look at the Atlantic mid-point so Brazil and eastern countries are visible
+    globe.pointOfView({ lat: 10, lng: 30, altitude: 2.2 }, 0);
+
+    const controls = globe.controls();
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.4;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+  }, [dims.w, dims.h]);
+
+  useEffect(() => {
+    buildGlobe();
+  }, [buildGlobe]);
+
+  // Keep globe sized if container resizes
+  useEffect(() => {
+    if (!globeInstanceRef.current || dims.w === 0) return;
+    globeInstanceRef.current.width(dims.w).height(dims.h);
+  }, [dims]);
+
   return (
-    <div className="absolute inset-0 z-0">
-      <Canvas
-        camera={{ position: [0, 0, 5.5], fov: 45 }}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: 'transparent' }}
-      >
-        <ambientLight intensity={0.2} />
-        <pointLight position={[10, 10, 10]} intensity={0.3} color="#c9a84c" />
-        <pointLight position={[-10, -10, -5]} intensity={0.15} color="#d4a843" />
-        <GlobeWireframe />
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          enableRotate={false}
-          autoRotate={false}
-        />
-      </Canvas>
+    <div ref={containerRef} className="absolute inset-0 z-0">
+      <div ref={globeRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );
 }
