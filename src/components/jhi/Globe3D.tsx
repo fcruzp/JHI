@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useTheme } from 'next-themes';
 
 // ─── Destinations ─────────────────────────────────────────────────────────────
 const BRAZIL = { lat: -15.78, lng: -47.93 };
@@ -31,9 +32,9 @@ const ARCS_DATA = DESTINATIONS.map((dst) => ({
 
 const POINTS_DATA = [
   // Brazil origin
-  { lat: BRAZIL.lat, lng: BRAZIL.lng, size: 0.6, color: '#ffffff', label: 'Brasil' },
+  { lat: BRAZIL.lat, lng: BRAZIL.lng, size: 0.6, color: '#ffffff', label: 'Brasil', isOrigin: true },
   // Destinations
-  ...DESTINATIONS.map((d) => ({ lat: d.lat, lng: d.lng, size: 0.3, color: d.color, label: d.name })),
+  ...DESTINATIONS.map((d) => ({ lat: d.lat, lng: d.lng, size: 0.3, color: d.color, label: d.name, isOrigin: false })),
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -41,6 +42,7 @@ export default function Globe3D() {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 0, h: 0 });
+  const { theme, resolvedTheme } = useTheme();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeInstanceRef = useRef<any>(null);
 
@@ -70,6 +72,9 @@ export default function Globe3D() {
       globeRef.current.innerHTML = '';
     }
 
+    const currentTheme = theme === 'system' ? resolvedTheme : theme;
+    const isDark = currentTheme === 'dark';
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const globe = (GlobeLib as any)({ animateIn: false })(globeRef.current as HTMLElement);
     globeInstanceRef.current = globe;
@@ -81,7 +86,11 @@ export default function Globe3D() {
 
       // ── Globe appearance ─────────────────────────────────────────────────
       .backgroundColor('rgba(0,0,0,0)')
-      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+      .globeImageUrl(
+        isDark 
+          ? '//unpkg.com/three-globe/example/img/earth-night.jpg' 
+          : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
+      )
       .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
 
       // ── Trade route arcs ─────────────────────────────────────────────────
@@ -98,7 +107,48 @@ export default function Globe3D() {
       .pointColor('color')
       .pointRadius('size')
       .pointAltitude(0.01)
-      .pointsMerge(false);
+      .pointsMerge(false)
+
+      // ── Elegant HTML Labels ──────────────────────────────────────────────
+      .htmlElementsData(POINTS_DATA)
+      .htmlLat('lat')
+      .htmlLng('lng')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .htmlElement((d: any) => {
+        const el = document.createElement('div');
+        
+        // Define theme-aware subtle colors
+        const bgColor = isDark ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)';
+        const textColor = isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.85)';
+        
+        // Increase opacity/border for the origin point (Brazil)
+        const borderColor = d.isOrigin ? 'rgba(255,255,255,0.8)' : `${d.color}60`;
+        const fontWeight = d.isOrigin ? '600' : '400';
+
+        el.innerHTML = `
+          <div style="
+            color: ${textColor};
+            font-size: 10px;
+            font-family: inherit;
+            font-weight: ${fontWeight};
+            letter-spacing: 0.03em;
+            background: ${bgColor};
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            padding: 3px 8px;
+            border-radius: 9999px;
+            border: 1px solid ${borderColor};
+            white-space: nowrap;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translate(-50%, -200%);
+            pointer-events: none;
+            transition: all 0.3s ease;
+          ">
+            ${d.label}
+          </div>
+        `;
+        return el;
+      });
 
     // ── Camera ──────────────────────────────────────────────────────────────
     // Look at the Atlantic mid-point so Brazil and eastern countries are visible
@@ -109,7 +159,7 @@ export default function Globe3D() {
     controls.autoRotateSpeed = 0.4;
     controls.enableZoom = false;
     controls.enablePan = false;
-  }, [dims.w, dims.h]);
+  }, [dims.w, dims.h, theme, resolvedTheme]);
 
   useEffect(() => {
     buildGlobe();
@@ -122,7 +172,7 @@ export default function Globe3D() {
   }, [dims]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 z-0">
+    <div ref={containerRef} className="absolute inset-0 z-0 opacity-90">
       <div ref={globeRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );
