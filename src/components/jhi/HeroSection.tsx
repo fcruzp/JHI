@@ -53,14 +53,14 @@ export function HeroSection() {
           className="mb-8 sm:mb-12"
         >
           <img
-            src="/images/logo-dark.png"
-            alt="J Huge International"
-            className="h-12 sm:h-16 md:h-20 mx-auto block dark:hidden"
-          />
-          <img
             src="/images/logo-light.png"
             alt="J Huge International"
-            className="h-12 sm:h-16 md:h-20 mx-auto hidden dark:block"
+            className="h-[4.5rem] sm:h-24 md:h-[7.5rem] mx-auto rounded-2xl block dark:hidden"
+          />
+          <img
+            src="/images/logo-dark.png"
+            alt="J Huge International"
+            className="h-[4.5rem] sm:h-24 md:h-[7.5rem] mx-auto rounded-2xl hidden dark:block"
           />
         </motion.div>
 

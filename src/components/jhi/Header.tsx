@@ -56,7 +56,7 @@ export function Header() {
           {/* Logo */}
           <a href="#" className="flex-shrink-0">
             <img
-              src={isDark ? '/images/logo-light.png' : '/images/logo-dark.png'}
+              src={isDark ? '/images/logo-dark.png' : '/images/logo-light.png'}
               alt="J Huge International"
               className="h-8 sm:h-10 w-auto transition-opacity duration-300"
             />

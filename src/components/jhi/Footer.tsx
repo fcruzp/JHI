@@ -26,12 +26,12 @@ export function Footer() {
           {/* Company info */}
           <div className="sm:col-span-2 lg:col-span-1">
             <img
-              src="/images/logo-dark.png"
+              src="/images/logo-light.png"
               alt="J Huge International"
               className="h-8 mb-4 block dark:hidden"
             />
             <img
-              src="/images/logo-light.png"
+              src="/images/logo-dark.png"
               alt="J Huge International"
               className="h-8 mb-4 hidden dark:block"
             />
