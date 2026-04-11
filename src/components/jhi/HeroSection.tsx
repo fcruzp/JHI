@@ -30,8 +30,8 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-gray-50 to-white dark:from-[#0a0a0a] dark:to-[#0a0a0a]">
-      {/* 3D Globe - hidden on very small screens */}
-      <div className="absolute inset-0 z-0 hidden sm:block">
+      {/* 3D Globe */}
+      <div className="absolute inset-0 z-0">
         <Suspense fallback={null}>
           <Globe3D />
         </Suspense>
