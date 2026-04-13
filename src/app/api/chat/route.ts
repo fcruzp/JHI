@@ -429,7 +429,7 @@ export async function POST(request: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
     const model = genAI.getGenerativeModel({
-      model: process.env.GOOGLE_MODEL || 'gemini-2.5-flash',
+      model: process.env.GOOGLE_MODEL || 'gemini-3-flash-preview',
       systemInstruction: systemPrompt,
     });
 

@@ -27,6 +27,9 @@ export function ContactSection() {
     email: '',
     commodity: '',
     quantity: '',
+    origin: '',
+    destination: '',
+    incoterms: '',
     message: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,6 +61,15 @@ export function ContactSection() {
     if (!formData.quantity.trim()) {
       newErrors.quantity = t.contactRequired;
     }
+    if (!formData.origin.trim()) {
+      newErrors.origin = t.contactRequired;
+    }
+    if (!formData.destination.trim()) {
+      newErrors.destination = t.contactRequired;
+    }
+    if (!formData.incoterms) {
+      newErrors.incoterms = t.contactRequired;
+    }
     if (!formData.message.trim()) {
       newErrors.message = t.contactRequired;
     }
@@ -84,7 +96,7 @@ export function ContactSection() {
 
       if (response.ok) {
         toast.success(t.contactSuccess);
-        setFormData({ name: '', email: '', commodity: '', quantity: '', message: '' });
+        setFormData({ name: '', email: '', commodity: '', quantity: '', origin: '', destination: '', incoterms: '', message: '' });
         setErrors({});
       } else {
         toast.error(data.error || t.contactError);
@@ -203,6 +215,94 @@ export function ContactSection() {
                   <p className="text-red-400 text-xs mt-1">{errors.quantity}</p>
                 )}
               </div>
+
+              {/* Origin */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t.contactOrigin}
+                </Label>
+                <Input
+                  value={formData.origin}
+                  onChange={(e) =>
+                    setFormData({ ...formData, origin: e.target.value })
+                  }
+                  placeholder={t.contactOriginPlaceholder}
+                  className={inputClass}
+                />
+                {errors.origin && (
+                  <p className="text-red-400 text-xs mt-1">{errors.origin}</p>
+                )}
+              </div>
+
+              {/* Destination */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t.contactDestination}
+                </Label>
+                <Input
+                  value={formData.destination}
+                  onChange={(e) =>
+                    setFormData({ ...formData, destination: e.target.value })
+                  }
+                  placeholder={t.contactDestinationPlaceholder}
+                  className={inputClass}
+                />
+                {errors.destination && (
+                  <p className="text-red-400 text-xs mt-1">{errors.destination}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Incoterms */}
+            <div className="space-y-2 mt-6">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t.contactIncoterms}
+              </Label>
+              <Select
+                value={formData.incoterms}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, incoterms: value })
+                }
+              >
+                <SelectTrigger className={inputClass}>
+                  <SelectValue placeholder={t.contactIncotermsPlaceholder} />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-white/10">
+                  <SelectItem
+                    value="FOB"
+                    className="text-gray-900 dark:text-gray-300 focus:text-gray-900 dark:focus:text-white focus:bg-gray-50 dark:focus:bg-white/5"
+                  >
+                    FOB
+                  </SelectItem>
+                  <SelectItem
+                    value="CIF"
+                    className="text-gray-900 dark:text-gray-300 focus:text-gray-900 dark:focus:text-white focus:bg-gray-50 dark:focus:bg-white/5"
+                  >
+                    CIF
+                  </SelectItem>
+                  <SelectItem
+                    value="CFR"
+                    className="text-gray-900 dark:text-gray-300 focus:text-gray-900 dark:focus:text-white focus:bg-gray-50 dark:focus:bg-white/5"
+                  >
+                    CFR
+                  </SelectItem>
+                  <SelectItem
+                    value="EXW"
+                    className="text-gray-900 dark:text-gray-300 focus:text-gray-900 dark:focus:text-white focus:bg-gray-50 dark:focus:bg-white/5"
+                  >
+                    EXW
+                  </SelectItem>
+                  <SelectItem
+                    value="DAP"
+                    className="text-gray-900 dark:text-gray-300 focus:text-gray-900 dark:focus:text-white focus:bg-gray-50 dark:focus:bg-white/5"
+                  >
+                    DAP
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.incoterms && (
+                <p className="text-red-400 text-xs mt-1">{errors.incoterms}</p>
+              )}
             </div>
 
             {/* Message */}

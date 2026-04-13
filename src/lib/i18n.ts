@@ -112,6 +112,12 @@ type TranslationKeys = {
   contactCommodityPlaceholder: string;
   contactQuantity: string;
   contactQuantityPlaceholder: string;
+  contactOrigin: string;
+  contactOriginPlaceholder: string;
+  contactDestination: string;
+  contactDestinationPlaceholder: string;
+  contactIncoterms: string;
+  contactIncotermsPlaceholder: string;
   contactMessage: string;
   contactMessagePlaceholder: string;
   contactSubmit: string;
@@ -256,9 +262,15 @@ const translations: Record<Language, TranslationKeys> = {
     contactCommodity: 'Commodity',
     contactCommodityPlaceholder: 'Select a commodity',
     contactQuantity: 'Quantity',
-    contactQuantityPlaceholder: 'Enter the desired quantity',
+    contactQuantityPlaceholder: 'Enter the desired quantity (e.g., 500 MT)',
+    contactOrigin: 'Origin',
+    contactOriginPlaceholder: 'Country/region of origin',
+    contactDestination: 'Destination',
+    contactDestinationPlaceholder: 'Destination country/port',
+    contactIncoterms: 'Incoterms',
+    contactIncotermsPlaceholder: 'Select Incoterm',
     contactMessage: 'Message',
-    contactMessagePlaceholder: 'Tell us about your requirements...',
+    contactMessagePlaceholder: 'Additional details about your requirements...',
     contactSubmit: 'Submit Quote Request',
     contactSuccess: 'Your quote request has been submitted successfully. Our team will contact you shortly.',
     contactError: 'There was an error submitting your request. Please try again.',
@@ -400,9 +412,15 @@ const translations: Record<Language, TranslationKeys> = {
     contactCommodity: 'Commodity',
     contactCommodityPlaceholder: 'Seleccione una commodity',
     contactQuantity: 'Cantidad',
-    contactQuantityPlaceholder: 'Ingrese la cantidad deseada',
+    contactQuantityPlaceholder: 'Ingrese la cantidad deseada (ej. 500 MT)',
+    contactOrigin: 'Origen',
+    contactOriginPlaceholder: 'País/región de origen',
+    contactDestination: 'Destino',
+    contactDestinationPlaceholder: 'País/puerto de destino',
+    contactIncoterms: 'Incoterms',
+    contactIncotermsPlaceholder: 'Seleccione Incoterm',
     contactMessage: 'Mensaje',
-    contactMessagePlaceholder: 'Cuéntenos sobre sus requisitos...',
+    contactMessagePlaceholder: 'Detalles adicionales sobre sus requisitos...',
     contactSubmit: 'Enviar Solicitud de Cotización',
     contactSuccess: 'Su solicitud de cotización ha sido enviada exitosamente. Nuestro equipo se pondrá en contacto con usted en breve.',
     contactError: 'Hubo un error al enviar su solicitud. Por favor, intente de nuevo.',
@@ -544,9 +562,15 @@ const translations: Record<Language, TranslationKeys> = {
     contactCommodity: '商品',
     contactCommodityPlaceholder: '请选择商品',
     contactQuantity: '数量',
-    contactQuantityPlaceholder: '请输入所需数量',
+    contactQuantityPlaceholder: '请输入所需数量（如 500 吨）',
+    contactOrigin: '原产地',
+    contactOriginPlaceholder: '原产国/地区',
+    contactDestination: '目的地',
+    contactDestinationPlaceholder: '目的国/港口',
+    contactIncoterms: '国际贸易术语',
+    contactIncotermsPlaceholder: '选择贸易术语',
     contactMessage: '留言',
-    contactMessagePlaceholder: '请告诉我们您的需求...',
+    contactMessagePlaceholder: '关于您需求的更多细节...',
     contactSubmit: '提交报价请求',
     contactSuccess: '您的报价请求已成功提交。我们的团队将很快与您联系。',
     contactError: '提交请求时出现错误，请重试。',
