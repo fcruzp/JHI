@@ -1,8 +1,6 @@
-'use client';
-
 import { Linkedin, Twitter } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
-import { getTranslation } from '@/lib/i18n';
+import { getTranslationServer } from '@/lib/i18n-server';
+import { cookies } from 'next/headers';
 
 const navItems = [
   { key: 'headerAbout', href: '#about' },
@@ -13,9 +11,10 @@ const navItems = [
   { key: 'headerContact', href: '#contact' },
 ];
 
-export function Footer() {
-  const { language } = useAppStore();
-  const t = getTranslation(language);
+export async function Footer() {
+  const cookieStore = await cookies();
+  const language = cookieStore.get('language')?.value || 'es';
+  const t = getTranslationServer(language);
 
   const year = new Date().getFullYear();
 

@@ -126,6 +126,29 @@ type TranslationKeys = {
   footerFollow: string;
   footerLang: string;
 
+  // FAQ
+  faqTitle: string;
+  faqQ1: string;
+  faqA1: string;
+  faqQ2: string;
+  faqA2: string;
+  faqQ3: string;
+  faqA3: string;
+  faqQ4: string;
+  faqA4: string;
+  faqQ5: string;
+  faqA5: string;
+  faqQ6: string;
+  faqA6: string;
+  faqQ7: string;
+  faqA7: string;
+  faqQ8: string;
+  faqA8: string;
+  faqQ9: string;
+  faqA9: string;
+  faqQ10: string;
+  faqA10: string;
+
   // Shared
   loading: string;
 };
@@ -248,6 +271,29 @@ const translations: Record<Language, TranslationKeys> = {
     footerFollow: 'Follow Us',
     footerLang: 'Language',
 
+    // FAQ
+    faqTitle: 'Frequently Asked Questions',
+    faqQ1: 'How does the JHI brokerage process work?',
+    faqA1: 'Our streamlined process begins with understanding your requirements, followed by sourcing from our verified global network. We handle negotiations, due diligence, and coordinate logistics to ensure secure, timely delivery.',
+    faqQ2: 'What commodities do you trade?',
+    faqA2: 'We facilitate the trade of soft and hard commodities, specializing in sugar, meat, grains, coffee, edible oils, and dairy. Our portfolio continually expands to meet global market demands.',
+    faqQ3: 'How long does it take to receive a quotation?',
+    faqA3: 'Thanks to our 24/7 global team and direct supplier connections, you can expect a preliminary quotation or market update within 24 hours of your initial request.',
+    faqQ4: 'What are the minimum order quantities?',
+    faqA4: 'Minimum order quantities vary by commodity and origin. We specialize in commercial-scale volumes to ensure competitive pricing and logistical efficiency for all parties involved.',
+    faqQ5: 'Which Incoterms do you work with?',
+    faqA5: 'We primarily work with FOB, CIF, and CFR depending on the commodity and client requirements. Our logistics experts ensure optimal terms for every unique transaction.',
+    faqQ6: 'How do payments and logistics work?',
+    faqA6: 'Payments are typically handled via Letter of Credit (LC) or Standard Banking MT103 for maximum security. Logistics are fully coordinated in partnership with world-class shipping and freight providers.',
+    faqQ7: 'Do you provide 24/7 support?',
+    faqA7: 'Yes. Our experienced team operates across multiple time zones, providing round-the-clock support in multiple languages to ensure smooth operations and immediate response times.',
+    faqQ8: 'How do I become a supplier or buyer with JHI?',
+    faqA8: 'Submit your details through our Contact section or Speak with Our Team. After an initial consultation and our rigorous diligence process, we\'ll integrate you into our global network.',
+    faqQ9: 'Is my information and transactions confidential?',
+    faqA9: 'Absolutely. We operate with the highest standards of discretion and integrity. All transactions and client data are protected under strict confidentiality agreements.',
+    faqQ10: 'What happens if there is a problem with the shipment?',
+    faqA10: 'Our dedicated operations team actively monitors every shipment. In the rare event of an issue, we leverage our global network and experience to resolve challenges swiftly with minimal disruption.',
+
     // Shared
     loading: 'Loading...',
   },
@@ -369,6 +415,29 @@ const translations: Record<Language, TranslationKeys> = {
     footerFollow: 'Síguenos',
     footerLang: 'Idioma',
 
+    // FAQ
+    faqTitle: 'Preguntas Frecuentes',
+    faqQ1: '¿Cómo funciona el proceso de intermediación de JHI?',
+    faqA1: 'Nuestro proceso optimizado comienza por entender sus requisitos, seguido de la búsqueda en nuestra red global verificada. Manejamos negociaciones, debida diligencia y logística para garantizar una entrega segura y puntual.',
+    faqQ2: '¿Con qué commodities operan?',
+    faqA2: 'Facilitamos el comercio de commodities blandos y duros, especializándonos en azúcar, carne, granos, café, aceites y lácteos. Nuestro portafolio se expande para satisfacer las demandas del mercado.',
+    faqQ3: '¿Cuánto tiempo se tarda en recibir una cotización?',
+    faqA3: 'Gracias a nuestro equipo global 24/7 y conexiones directas, puede esperar una cotización preliminar en un plazo de 24 horas tras su solicitud inicial.',
+    faqQ4: '¿Cuáles son las cantidades mínimas de pedido?',
+    faqA4: 'Varían según el commodity y el origen. Nos especializamos en volúmenes a escala comercial para garantizar precios competitivos y eficiencia logística.',
+    faqQ5: '¿Con qué Incoterms trabajan?',
+    faqA5: 'Trabajamos principalmente con FOB, CIF y CFR, dependiendo del commodity y los requerimientos del cliente. Nuestros expertos aseguran los términos óptimos para cada transacción.',
+    faqQ6: '¿Cómo funcionan los pagos y la logística?',
+    faqA6: 'Los pagos se manejan típicamente mediante Carta de Crédito (LC) o MT103 estándar bancario por máxima seguridad. La logística se coordina con proveedores de carga de clase mundial.',
+    faqQ7: '¿Ofrecen soporte 24/7?',
+    faqA7: 'Sí. Nuestro equipo experimentado opera en varios husos horarios, brindando soporte ininterrumpido en múltiples idiomas para asegurar operaciones fluidas.',
+    faqQ8: '¿Cómo me convierto en proveedor o comprador con JHI?',
+    faqA8: 'Envíe sus detalles en la sección de Contacto. Tras una consulta inicial y nuestro riguroso proceso de diligencia, lo integraremos a nuestra red global.',
+    faqQ9: '¿Mi información y transacciones son confidenciales?',
+    faqA9: 'Absolutamente. Operamos con los más altos estándares de discreción. Todas las transacciones y datos de clientes están protegidos bajo estrictos acuerdos de confidencialidad.',
+    faqQ10: '¿Qué sucede si hay un problema con el envío?',
+    faqA10: 'Nuestro equipo de operaciones monitorea activamente cada envío. En el raro caso de un problema, utilizamos nuestra experiencia para resolver desafíos rápidamente con mínima interrupción.',
+
     // Shared
     loading: 'Cargando...',
   },
@@ -489,6 +558,29 @@ const translations: Record<Language, TranslationKeys> = {
     footerNav: '导航',
     footerFollow: '关注我们',
     footerLang: '语言',
+
+    // FAQ
+    faqTitle: '常见问题',
+    faqQ1: 'JHI 的中介流程是如何运作的？',
+    faqA1: '我们简化的流程从了解您的需求开始，然后在我们经过验证的全球网络中进行寻源。我们负责谈判、尽职调查和协调物流，以确保安全及时的交付。',
+    faqQ2: '贵公司交易哪些大宗商品？',
+    faqA2: '我们促进软硬大宗商品的贸易，主要专注于糖、肉类、谷物、咖啡、食用油和乳制品。我们的投资组合不断扩展以满足全球市场需求。',
+    faqQ3: '收到报价需要多长时间？',
+    faqA3: '得益于我们 24/7 的全球团队和直接的供应商联系，您可以在初次请求后的 24 小时内获得初步报价或市场更新。',
+    faqQ4: '最小起订量是多少？',
+    faqA4: '最小起订量因商品和原产地而异。我们专注于商业规模的交易量，以确保所有参与方具有竞争力的定价和物流效率。',
+    faqQ5: '贵公司使用哪些国际贸易术语（Incoterms）？',
+    faqA5: '根据商品和客户要求，我们主要使用 FOB、CIF 和 CFR。我们的物流专家可确保为每笔独特交易提供最佳条款。',
+    faqQ6: '支付和物流如何处理？',
+    faqA6: '为了实现最高安全性，付款通常通过信用证 (LC) 或标准银行 MT103 处理。物流与世界级的航运和货运供应商全面合作协调。',
+    faqQ7: '你们提供 24/7 全天候支持吗？',
+    faqA7: '是的。我们经验丰富的团队跨越多个时区运作，提供多语言的全天候支持，以确保顺畅的运营和及时的响应。',
+    faqQ8: '我如何成为 JHI 的供应商或买家？',
+    faqA8: '请通过我们的联系或沟通版块提交您的信息。经过初步咨询和严格尽职调查后，我们会将您整合到全球网络中。',
+    faqQ9: '我的信息和交易保密吗？',
+    faqA9: '绝对保密。我们以最高的谨慎度和诚信标准运营。所有交易和客户数据均受到严格保密协议的保护。',
+    faqQ10: '如果货物运输出现问题怎么办？',
+    faqA10: '我们专门的运营团队积极监控每批货物。在极少数出现问题的情况下，我们将利用全球网络和经验迅速解决挑战，将干扰降至最低。',
 
     // Shared
     loading: '加载中...',
