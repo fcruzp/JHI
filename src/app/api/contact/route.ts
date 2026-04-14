@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
+import { HubSpotService } from '@/lib/hubspot/service';
+import { CotizacionData, ProductoCotizado, Incoterm, TipoClienteOperacion } from '@/lib/hubspot/types';
+import { EmailService } from '@/lib/email/service';
 
 const contactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -12,147 +15,7 @@ const contactSchema = z.object({
   message: z.string().min(1, 'Message is required'),
 });
 
-const HUBSPOT_API_URL = 'https://api.hubapi.com';
-
-async function findOrCreateContact(data: { name: string; email: string }): Promise<string | null> {
-  // Search for existing contact by email
-  const searchRes = await fetch(
-    `${HUBSPOT_API_URL}/crm/v3/objects/contacts/search`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-      },
-      body: JSON.stringify({
-        filterGroups: [
-          {
-            filters: [
-              {
-                propertyName: 'email',
-                value: data.email,
-                operator: 'EQ',
-              },
-            ],
-          },
-        ],
-      }),
-    }
-  );
-
-  if (!searchRes.ok) {
-    console.error('HubSpot contact search failed:', await searchRes.json().catch(() => ({})));
-    return null;
-  }
-
-  const searchData = await searchRes.json();
-
-  if (searchData.results && searchData.results.length > 0) {
-    return searchData.results[0].id;
-  }
-
-  // Create new contact
-  const firstName = data.name.split(' ')[0] || '';
-  const lastName = data.name.split(' ').slice(1).join(' ') || '';
-
-  const createRes = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/contacts`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-    },
-    body: JSON.stringify({
-      properties: {
-        firstname: firstName,
-        lastname: lastName,
-        email: data.email,
-      },
-    }),
-  });
-
-  if (!createRes.ok) {
-    console.error('HubSpot contact creation failed:', await createRes.json().catch(() => ({})));
-    return null;
-  }
-
-  const createData = await createRes.json();
-  return createData.id;
-}
-
-async function createHubSpotDeal(
-  data: {
-    commodity: string;
-    quantity: string;
-    origin: string;
-    destination: string;
-    incoterms: string;
-    message: string;
-    email: string;
-  },
-  contactId: string | null
-): Promise<boolean> {
-  // Extract numeric value from quantity (e.g., "10 MT" → "10")
-  const numericQuantity = String(data.quantity).replace(/[^0-9.]/g, '') || String(data.quantity);
-
-  const dealName = `${data.commodity} — ${data.quantity} MT from ${data.origin} to ${data.destination} (${data.incoterms})`;
-
-  const body: Record<string, unknown> = {
-    properties: {
-      dealname: dealName,
-      amount: numericQuantity,
-      dealstage: 'appointmentscheduled',
-      description: data.message || `Origin: ${data.origin}\nIncoterms: ${data.incoterms}\nContact: ${data.email}`,
-    },
-  };
-
-  if (contactId) {
-    body.associations = [
-      {
-        to: { id: String(contactId) },
-        types: [
-          {
-            associationCategory: 'HUBSPOT_DEFINED',
-            associationTypeId: '3',
-          },
-        ],
-      },
-    ];
-  }
-
-  const res = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/deals`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error('HubSpot deal creation failed:', err);
-
-    // Fallback: try without associations
-    const { associations, ...bodyNoAssoc } = body;
-    const fallbackRes = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/deals`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-      },
-      body: JSON.stringify(bodyNoAssoc),
-    });
-
-    if (!fallbackRes.ok) {
-      const fallbackErr = await fallbackRes.json().catch(() => ({}));
-      console.error('HubSpot deal creation fallback also failed:', fallbackErr);
-      return false;
-    }
-    return true;
-  }
-
-  return true;
-}
+// OLD HUBSPOT FUNCTIONS REMOVED - Now using HubSpotService
 
 export async function POST(request: NextRequest) {
   try {
@@ -171,22 +34,82 @@ export async function POST(request: NextRequest) {
 
     console.log('Contact form submission:', result.data);
 
-    // HubSpot integration: create contact and deal
     try {
-      const contactId = await findOrCreateContact({ name, email });
+      // Normalize enum values
+      const normalizeIncoterm = (val: string): Incoterm => {
+        const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (lower.includes('fob')) return 'fob';
+        if (lower.includes('cif')) return 'cif';
+        if (lower.includes('cfr')) return 'cfr';
+        if (lower.includes('exw')) return 'exw';
+        return 'otro';
+      };
 
-      if (contactId) {
-        console.log('Contact found/created with ID:', contactId);
+      const normalizeProducto = (val: string): ProductoCotizado => {
+        const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (lower.includes('azucar') || lower.includes('sugar')) return 'azucar';
+        if (lower.includes('chicken') || lower.includes('paw') || lower.includes('pollo')) return 'chicken_paws';
+        // For other valid commodities not in enum, default to 'otro' but keep original name in description
+        return 'otro';
+      };
+
+      // First find or create contact
+      const contact = await HubSpotService.contacts.findOrCreate({
+        email: email,
+        firstName: name.split(' ')[0] || '',
+        lastName: name.split(' ').slice(1).join(' ') || '',
+      });
+
+      // Map to new cotizacion schema
+      const cotizacionData: CotizacionData = {
+        producto_cotizado: normalizeProducto(commodity),
+        producto_nombre_original: commodity, // Keep original name for dealname display
+        incoterm: normalizeIncoterm(incoterms),
+        tipo_cliente_operacion: 'cliente_directo',
+        mercado_origen: origin,
+        contactId: contact.id,
+        contactEmail: email,
+        amount: String(quantity).replace(/[^0-9.]/g, '') || quantity, // Extract only numeric part
+        description: message,
+      };
+
+      // Create cotizacion
+      const cotizacion = await HubSpotService.cotizaciones.create(cotizacionData);
+      
+      // Save the customer message as a Note activity on the cotizacion
+      if (message && message.trim()) {
+        try {
+          await HubSpotService.activities.createNote({
+            content: `Solicitud del cliente:\n${message}`,
+            cotizacionId: cotizacion.id,
+          });
+          // eslint-disable-next-line no-console
+          console.log('[Contact] Customer message saved as note on cotizacion:', cotizacion.id);
+        } catch (noteError) {
+          // eslint-disable-next-line no-console
+          console.error('[Contact] Failed to save message as note:', noteError);
+        }
       }
 
-      const dealCreated = await createHubSpotDeal(
-        { commodity, quantity, origin, destination, incoterms, message, email },
-        contactId
-      );
-
-      if (dealCreated) {
-        console.log('HubSpot deal created successfully');
+      // Send confirmation email
+      try {
+        await EmailService.sendLevantandoPrecio(email, {
+          nombre: name.split(' ')[0] || name,
+          producto: commodity,
+          incoterm: incoterms,
+          cantidad: quantity,
+          cotizacionId: cotizacion.id,
+          mensaje: message, // Include customer's message in email
+        });
+        // eslint-disable-next-line no-console
+        console.log('[Contact] Confirmation email sent to:', email);
+      } catch (emailError) {
+        // eslint-disable-next-line no-console
+        console.error('[Contact] Failed to send confirmation email:', emailError);
       }
+      
+      // eslint-disable-next-line no-console
+      console.log('[Contact] Contact ID:', contact.id, '| Cotización created with ID:', cotizacion.id);
     } catch (hubspotError) {
       console.error('HubSpot integration error:', hubspotError);
       // Don't fail the request to the user if HubSpot fails

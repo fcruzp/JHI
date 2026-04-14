@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
+import { HubSpotService } from '@/lib/hubspot/service';
+import { EmailService } from '@/lib/email/service';
+import { CotizacionData, ProductoCotizado, Incoterm, ESTADO_LABELS } from '@/lib/hubspot/types';
 
 // ============================================================
 // SYSTEM PROMPTS - Sales Agent (EN / ES / ZH)
@@ -47,16 +51,17 @@ REGLAS IMPORTANTES:
    - País de destino
    - Incoterms preferido (FOB, CIF, CFR, etc.)
    - Nombre completo y email de la persona/empresa
-3. Para ESTATUS DE COTIZACIÓN, pide número de referencia o email.
+3. Para ESTATUS DE COTIZACIÓN:
+   - Si el usuario proporciona un número de referencia (ej: 59154461092), úsalo directamente.
+   - Si no hay referencia, pide el email del cliente.
+   - Cuando tengas email O referencia, di: "Déjeme verificar el estado de su cotización ahora mismo."
+   - Luego devuelve un bloque JSON al final dentro de \`\`\`json ... \`\`\`:
+   {"action":"check_status","data":{"email":"...","reference":"59154461092"}}
+   - NO uses la frase "¡Perfecto! Ya terminé..." para consultas de estatus.
 4. Cuando tengas TODA la info de una NUEVA COTIZACIÓN, termina EXACTAMENTE con esta frase:
    "¡Perfecto! Ya terminé la conversación. Te enviaré la cotización pronto."
    Luego devuelve un bloque JSON al final dentro de \`\`\`json ... \`\`\`:
    {"action":"create_quote","data":{"email":"...","name":"...","commodity":"...","quantity":500,"origin":"Brasil","destination":"España","incoterms":"CIF","notes":"..."}}
-5. Para consultas de ESTATUS, una vez tengas el email o referencia, di:
-   "Déjeme verificar el estado de su cotización ahora mismo."
-   Luego devuelve un bloque JSON al final dentro de \`\`\`json ... \`\`\`:
-   {"action":"check_status","data":{"email":"...","reference":"..."}}
-   NO uses la frase "¡Perfecto! Ya terminé..." para consultas de estatus.
 
 Nunca menciones que eres una IA. Despídete siempre como "Equipo JHI".`,
 
@@ -89,288 +94,47 @@ Nunca menciones que eres una IA. Despídete siempre como "Equipo JHI".`,
 };
 
 // ============================================================
-// HUBSPOT INTEGRATION
+// HUBSPOT INTEGRATION - Now using centralized service
 // ============================================================
 
-const HUBSPOT_API_URL = 'https://api.hubapi.com';
-
-async function findOrCreateContact(data: { name: string; email: string }) {
-  // Try to find existing contact by email
-  const searchRes = await fetch(
-    `${HUBSPOT_API_URL}/crm/v3/objects/contacts/search`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-      },
-      body: JSON.stringify({
-        filterGroups: [
-          {
-            filters: [
-              {
-                propertyName: 'email',
-                operator: 'EQ',
-                value: data.email,
-              },
-            ],
-          },
-        ],
-      }),
-    }
-  );
-
-  if (searchRes.ok) {
-    const searchData = await searchRes.json();
-    if (searchData.results?.length > 0) {
-      console.log('Contact already exists, reusing ID:', searchData.results[0].id);
-      return searchData.results[0];
-    }
-  }
-
-  // Create new contact
-  return createHubSpotContact(data);
-}
-
-async function createHubSpotContact(data: { name: string; email: string }) {
-  const res = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/contacts`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-    },
-    body: JSON.stringify({
-      properties: {
-        firstname: data.name.split(' ')[0] || '',
-        lastname: data.name.split(' ').slice(1).join(' ') || '',
-        email: data.email,
-      },
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error('HubSpot contact creation failed:', err);
-    return null;
-  }
-
-  return res.json();
-}
-
-async function createHubSpotDeal(
-  data: {
-    commodity: string;
-    quantity: number | string;
-    origin: string;
-    destination: string;
-    incoterms: string;
-    notes: string;
-    email: string;
-  },
-  contactId: string | null
-) {
-  // Build deal name using standard HubSpot fields
-  const dealName = `${data.commodity} — ${data.quantity} MT from ${data.origin} to ${data.destination} (${data.incoterms})`;
-
-  const body: Record<string, unknown> = {
-    properties: {
-      dealname: dealName,
-      amount: String(data.quantity),
-      dealstage: 'appointmentscheduled',
-      description: data.notes || `Origin: ${data.origin}\nIncoterms: ${data.incoterms}\nContact: ${data.email}`,
-    },
-  };
-
-  // Only add association if we have a valid contact
-  if (contactId) {
-    body.associations = [
-      {
-        to: { id: String(contactId) },
-        types: [
-          {
-            associationCategory: 'HUBSPOT_DEFINED',
-            associationTypeId: '3',
-          },
-        ],
-      },
-    ];
-  }
-
-  const res = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/deals`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error('HubSpot deal creation failed:', err);
-
-    // Fallback: try creating deal without associations
-    console.log('Retrying deal without associations...');
-    const { associations, ...bodyNoAssoc } = body;
-    const fallbackRes = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/deals`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-      },
-      body: JSON.stringify(bodyNoAssoc),
-    });
-
-    if (!fallbackRes.ok) {
-      const fallbackErr = await fallbackRes.json().catch(() => ({}));
-      console.error('HubSpot deal creation fallback also failed:', fallbackErr);
-      return null;
-    }
-
-    return fallbackRes.json();
-  }
-
-  return res.json();
-}
+// OLD FUNCTIONS REMOVED - Now using HubSpotService from @/lib/hubspot/service
 
 // ============================================================
-// CHECK QUOTE STATUS
+// CHECK QUOTE STATUS - Updated to use new service
 // ============================================================
 
 async function checkQuoteStatus(data: { email?: string; reference?: string }) {
-  let deals: any[] = [];
+  try {
+    let deals: Awaited<ReturnType<typeof HubSpotService.cotizaciones.getByContactEmail>> = [];
 
-  // First try to find contact by email
-  let contactId: string | null = null;
-  if (data.email) {
-    const searchRes = await fetch(
-      `${HUBSPOT_API_URL}/crm/v3/objects/contacts/search`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-        },
-        body: JSON.stringify({
-          filterGroups: [
-            {
-              filters: [
-                {
-                  propertyName: 'email',
-                  operator: 'EQ',
-                  value: data.email,
-                },
-              ],
-            },
-          ],
-        }),
-      }
-    );
-
-    if (searchRes.ok) {
-      const searchData = await searchRes.json();
-      if (searchData.results?.length > 0) {
-        contactId = searchData.results[0].id;
-      }
+    // If reference (ID) is provided, fetch directly
+    if (data.reference && /^\d+$/.test(data.reference)) {
+      const deal = await HubSpotService.cotizaciones.getById(data.reference);
+      if (deal) deals = [deal];
     }
-  }
 
-  // If we found a contact, get their associated deals
-  if (contactId) {
-    const dealsRes = await fetch(
-      `${HUBSPOT_API_URL}/crm/v3/objects/contacts/${contactId}/associations/deals`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-        },
-      }
-    );
-
-    if (dealsRes.ok) {
-      const dealsData = await dealsRes.json();
-      const dealIds = dealsData.results?.map((d: { id: string }) => d.id) || [];
-
-      // Fetch deal details
-      for (const dealId of dealIds.slice(0, 10)) {
-        const dealRes = await fetch(
-          `${HUBSPOT_API_URL}/crm/v3/objects/deals/${dealId}?properties=dealname,dealstage,amount,description,createdate`,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-            },
-          }
-        );
-
-        if (dealRes.ok) {
-          deals.push(await dealRes.json());
-        }
-      }
+    // If no deals found by reference, try email
+    if (deals.length === 0 && data.email) {
+      deals = await HubSpotService.cotizaciones.getByContactEmail(data.email);
     }
-  }
 
-  // If no deals found via contact, fallback to searching all open deals
-  if (deals.length === 0 && data.email) {
-    const searchRes = await fetch(
-      `${HUBSPOT_API_URL}/crm/v3/objects/deals/search`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.HUBSPOT_API_KEY}`,
-        },
-        body: JSON.stringify({
-          filterGroups: [
-            {
-              filters: [
-                {
-                  propertyName: 'hs_is_closed_won',
-                  operator: 'EQ',
-                  value: 'false',
-                },
-              ],
-            },
-          ],
-          sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
-          limit: 10,
-          properties: ['dealname', 'dealstage', 'amount', 'description', 'createdate'],
-        }),
-      }
-    );
-
-    if (searchRes.ok) {
-      const searchData = await searchRes.json();
-      deals = (searchData.results || []).filter(
-        (d: { properties?: Record<string, string> }) =>
-          d.properties?.description?.includes(data.email!)
-      );
+    if (deals.length === 0) {
+      return `\n\n---\n\n⚠️ No active quotes found for the provided information. Please contact our team for more details.`;
     }
-  }
 
-  // If we found deals, format a status summary
-  if (deals.length > 0) {
-    // Filter out closed deals — only count pending
+    // Filter out closed deals
     const pendingDeals = deals.filter(
       (d) =>
-        d.properties?.dealstage !== 'closedwon' &&
-        d.properties?.dealstage !== 'closedlost'
+        d.properties?.estado_cotizacion !== 'ganada' &&
+        d.properties?.estado_cotizacion !== 'perdida'
     );
 
-    // Sort by date ascending (oldest first)
+    // Sort by date ascending
     pendingDeals.sort((a, b) => {
       const dateA = a.properties?.createdate || '';
       const dateB = b.properties?.createdate || '';
       return dateA.localeCompare(dateB);
     });
-
-    const stageNames: Record<string, string> = {
-      appointmentscheduled: '📅 Scheduled',
-      qualifiedtobuy: '✅ Qualified',
-      presentationscheduled: '📊 Presentation Scheduled',
-      decisionmakerboughtin: '🤝 Decision Maker Review',
-      contractsent: '📄 Contract Sent',
-      closedwon: '🎉 Closed Won',
-      closedlost: '❌ Closed Lost',
-    };
 
     if (pendingDeals.length > 0) {
       const countMsg = pendingDeals.length === 1
@@ -378,10 +142,34 @@ async function checkQuoteStatus(data: { email?: string; reference?: string }) {
         : `Tiene **${pendingDeals.length} cotizaciones pendientes**: Estas son sus cotizaciones listadas por fecha (más antigua primero):`;
 
       const summary = pendingDeals
-        .map((d: { id: string; properties?: Record<string, string> }) => {
+        .map((d) => {
           const p = d.properties || {};
-          const stage = stageNames[p.dealstage || ''] || p.dealstage || 'Unknown';
-          return `• **${p.dealname}** — Stage: ${stage} | Cantidad: ${p.amount || 'N/A'} MT | Creada: ${p.createdate?.split('T')[0] || 'N/A'}`;
+          const estadoRaw = p.estado_cotizacion || '';
+          let estado = ESTADO_LABELS[estadoRaw];
+          
+          // Fallback: if no custom estado_cotizacion, map from HubSpot dealstage
+          if (!estado) {
+            const stageMap: Record<string, string> = {
+              appointmentscheduled: 'Levantando precio',
+              qualifiedtobuy: 'Validando logística',
+              presentationscheduled: 'Preparando cotización',
+              contractsent: 'Cotización enviada',
+              decisionmakerboughtin: 'En negociación',
+              closedwon: 'Ganada',
+              closedlost: 'Perdida',
+            };
+            estado = stageMap[p.dealstage || ''] || 'En proceso';
+          }
+          
+          let line = `• **${p.dealname}** — Estado: ${estado} | Cantidad: ${p.amount || 'N/A'} MT | Creada: ${p.createdate?.split('T')[0] || 'N/A'}`;
+          
+          // Include customer's message only if it's a real message (not auto-generated Origin/Destination text from chat)
+          const desc = p.description || '';
+          if (desc && !desc.startsWith('Origin:')) {
+            line += `\n  _Mensaje:_ ${desc}`;
+          }
+          
+          return line;
         })
         .join('\n\n');
 
@@ -389,9 +177,9 @@ async function checkQuoteStatus(data: { email?: string; reference?: string }) {
     }
 
     return `\n\n---\n\n✅ No tienes cotizaciones pendientes. Todas tus solicitudes han sido procesadas.`;
+  } catch {
+    return `\n\n---\n\n⚠️ Error al consultar el estado de su cotización. Por favor contacte al equipo JHI.`;
   }
-
-  return `\n\n---\n\n⚠️ No active quotes found for the provided information. Please contact our team for more details.`;
 }
 
 // ============================================================
@@ -448,7 +236,7 @@ export async function POST(request: NextRequest) {
       contents,
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 800,
+        maxOutputTokens: 2000,
       },
     });
 
@@ -461,35 +249,70 @@ export async function POST(request: NextRequest) {
       console.log('Detected action JSON:', JSON.stringify(actionData));
 
       if (actionData.action === 'create_quote' && actionData.data) {
-        const { email, name, ...dealData } = actionData.data;
+        const { email, name, commodity, quantity, origin, destination, incoterms, notes } = actionData.data;
 
-        let contactId: string | null = null;
+        // Normalize enum values to match HubSpot options (lowercase, no accents)
+        const normalizeIncoterm = (val: string): Incoterm => {
+          const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          if (lower.includes('fob')) return 'fob';
+          if (lower.includes('cif')) return 'cif';
+          if (lower.includes('cfr')) return 'cfr';
+          if (lower.includes('exw')) return 'exw';
+          return 'otro';
+        };
 
-        // Try to find or create contact
-        if (email) {
-          console.log('Finding or creating HubSpot contact for:', email);
+        const normalizeProducto = (val: string): ProductoCotizado => {
+          const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          if (lower.includes('azucar') || lower.includes('sugar')) return 'azucar';
+          if (lower.includes('chicken') || lower.includes('paw')) return 'chicken_paws';
+          return 'otro';
+        };
+
+        try {
+          // First find or create the contact
+          const contact = await HubSpotService.contacts.findOrCreate({
+            email: email,
+            firstName: name.split(' ')[0] || '',
+            lastName: name.split(' ').slice(1).join(' ') || '',
+          });
+
+          // Map to new schema with normalized values
+          const cotizacionData: CotizacionData = {
+            producto_cotizado: normalizeProducto(commodity || 'otro'),
+            producto_nombre_original: commodity, // Keep original name for dealname display
+            incoterm: normalizeIncoterm(incoterms || 'otro'),
+            tipo_cliente_operacion: 'cliente_directo',
+            mercado_origen: origin,
+            contactId: contact.id,
+            contactEmail: email,
+            amount: quantity,
+            description: `Origin: ${origin}\nDestination: ${destination}\nIncoterms: ${incoterms}\nContact: ${email}`,
+          };
+
+          // Create cotizacion with contact association
+          const cotizacion = await HubSpotService.cotizaciones.create(cotizacionData);
+
+          // Send confirmation email to client
           try {
-            const contact = await findOrCreateContact({
-              name: name || 'JHI Lead',
-              email,
+            await EmailService.sendLevantandoPrecio(email, {
+              nombre: name.split(' ')[0] || name,
+              producto: commodity,
+              incoterm: incoterms,
+              cantidad: String(quantity),
+              cotizacionId: cotizacion.id,
             });
-
-            if (contact) {
-              contactId = contact.id;
-              console.log('Contact ready, ID:', contactId);
-            }
-          } catch (err) {
-            console.error('Contact operation failed, creating deal without contact:', err);
+            // eslint-disable-next-line no-console
+            console.log('[Chat] Confirmation email sent to:', email);
+          } catch (emailError) {
+            // eslint-disable-next-line no-console
+            console.error('[Chat] Failed to send confirmation email:', emailError);
           }
-        }
 
-        // Always create the deal — even if contact failed
-        console.log('Creating HubSpot deal (contactId:', contactId, ')');
-        const deal = await createHubSpotDeal(dealData, contactId);
-        if (deal) {
-          console.log('Deal saved successfully, ID:', deal.id);
-        } else {
-          console.error('Failed to create deal in HubSpot');
+          // eslint-disable-next-line no-console
+          console.log('[Chat] Contact ID:', contact.id, '| Cotización created successfully, ID:', cotizacion.id);
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error('[Chat] Failed to create cotizacion:', err);
         }
       }
 
@@ -500,7 +323,6 @@ export async function POST(request: NextRequest) {
 
         try {
           const statusInfo = await checkQuoteStatus({ email, reference });
-          // Append status info to the AI response so the user sees it
           return NextResponse.json(
             { message: reply + statusInfo },
             { status: 200 }

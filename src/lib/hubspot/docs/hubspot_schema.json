@@ -1,0 +1,200 @@
+{
+  "schema_version": "1.0.0",
+  "portal_id": "51334831",
+  "timezone": "America/Caracas",
+  "crm_strategy": {
+    "system_of_record": "HubSpot",
+    "operational_engine": "webapp_externa",
+    "notes": [
+      "La webapp maneja la lógica operativa y automatizaciones.",
+      "HubSpot actúa como CRM y backoffice comercial.",
+      "No usar nombres legacy en lógica nueva si el objeto fue renombrado."
+    ]
+  },
+  "hubspot_objects": {
+    "contacts": {
+      "objectTypeId": "0-1",
+      "singularLabel": "Contact",
+      "pluralLabel": "Contacts",
+      "purpose": "Personas involucradas en la operación comercial",
+      "key_properties": {
+        "rol_en_la_operacion": {
+          "label": "Rol en la operación",
+          "type": "enumeration",
+          "fieldType": "select",
+          "allowed_values": [
+            { "value": "comprador", "label": "Comprador" },
+            { "value": "broker", "label": "Broker" },
+            { "value": "logistica", "label": "Logística" },
+            { "value": "finanzas", "label": "Finanzas" },
+            { "value": "otro", "label": "Otro" }
+          ]
+        }
+      }
+    },
+    "companies": {
+      "objectTypeId": "0-2",
+      "singularLabel": "Company",
+      "pluralLabel": "Companies",
+      "purpose": "Empresas asociadas a la operación comercial"
+    },
+    "cotizaciones": {
+      "objectTypeId": "0-3",
+      "singularLabel": "Cotización",
+      "pluralLabel": "Cotizaciones",
+      "previousHubSpotName": {
+        "singularLabel": "Deal",
+        "pluralLabel": "Deals"
+      },
+      "purpose": "Objeto principal para gestionar oportunidades/cotizaciones comerciales",
+      "key_properties": {
+        "estado_cotizacion": {
+          "label": "Estado de cotización",
+          "type": "enumeration",
+          "fieldType": "select",
+          "allowed_values": [
+            { "value": "levantando_precio", "label": "Levantando precio" },
+            { "value": "validando_logistica", "label": "Validando logística" },
+            { "value": "preparando_cotizacion_formal", "label": "Preparando cotización formal" },
+            { "value": "cotizacion_enviada", "label": "Cotización enviada" },
+            { "value": "en_negociacion", "label": "En negociación" },
+            { "value": "ganada", "label": "Ganada" },
+            { "value": "perdida", "label": "Perdida" }
+          ]
+        },
+        "fecha_envio_cotizacion": {
+          "label": "Fecha de envío de cotización",
+          "type": "date",
+          "fieldType": "date",
+          "format": "YYYY-MM-DD"
+        },
+        "producto_cotizado": {
+          "label": "Producto cotizado",
+          "type": "enumeration",
+          "fieldType": "select",
+          "allowed_values": [
+            { "value": "azucar", "label": "Azúcar" },
+            { "value": "chicken_paws", "label": "Chicken paws" },
+            { "value": "otro", "label": "Otro" }
+          ]
+        },
+        "incoterm": {
+          "label": "Incoterm",
+          "type": "enumeration",
+          "fieldType": "select",
+          "allowed_values": [
+            { "value": "fob", "label": "FOB" },
+            { "value": "cif", "label": "CIF" },
+            { "value": "cfr", "label": "CFR" },
+            { "value": "exw", "label": "EXW" },
+            { "value": "otro", "label": "Otro" }
+          ]
+        },
+        "tipo_cliente_operacion": {
+          "label": "Tipo de cliente en la operación",
+          "type": "enumeration",
+          "fieldType": "select",
+          "allowed_values": [
+            { "value": "cliente_directo", "label": "Cliente directo" },
+            { "value": "otro_broker", "label": "Otro broker" }
+          ]
+        },
+        "puerto_salida": {
+          "label": "Puerto de salida",
+          "type": "string",
+          "fieldType": "text"
+        },
+        "mercado_origen": {
+          "label": "Mercado de origen",
+          "type": "string",
+          "fieldType": "text"
+        }
+      }
+    }
+  },
+  "associations": [
+    {
+      "fromObjectTypeId": "0-3",
+      "toObjectTypeId": "0-1",
+      "relationship": "Una cotización puede asociarse a uno o varios contactos",
+      "associationTypeId": "3"
+    },
+    {
+      "fromObjectTypeId": "0-3",
+      "toObjectTypeId": "0-2",
+      "relationship": "Una cotización puede asociarse a una empresa",
+      "associationTypeId": "5"
+    },
+    {
+      "fromObjectTypeId": "0-1",
+      "toObjectTypeId": "0-2",
+      "relationship": "Un contacto puede estar asociado a una empresa"
+    }
+  ],
+  "business_rules": [
+    {
+      "id": "BR-001",
+      "name": "Usar nombre actual del objeto comercial",
+      "rule": "La IA debe usar el objeto 0-3 con nombre de negocio 'Cotización/Cotizaciones' y no usar 'Deals' en nueva lógica funcional."
+    },
+    {
+      "id": "BR-002",
+      "name": "No inventar valores de enumeraciones",
+      "rule": "La IA solo puede escribir valores incluidos en allowed_values para propiedades tipo enumeration."
+    },
+    {
+      "id": "BR-003",
+      "name": "Fecha automática al enviar cotización",
+      "rule": "Si estado_cotizacion cambia a 'cotizacion_enviada', debe establecerse fecha_envio_cotizacion con la fecha actual en formato YYYY-MM-DD, salvo que ya exista una política distinta de reenvío."
+    },
+    {
+      "id": "BR-004",
+      "name": "Validar asociaciones mínimas",
+      "rule": "Antes de marcar una cotización como enviada, la IA debería verificar que exista al menos un contacto o empresa relacionada según el flujo operativo definido."
+    },
+    {
+      "id": "BR-005",
+      "name": "No sobrescribir sin motivo",
+      "rule": "La IA no debe sobrescribir campos ya completados sin instrucción explícita o sin una regla funcional definida."
+    }
+  ],
+  "recommended_actions_for_ai": {
+    "create_contact": {
+      "objectTypeId": "0-1",
+      "allowed_properties": ["rol_en_la_operacion"]
+    },
+    "create_company": {
+      "objectTypeId": "0-2"
+    },
+    "create_cotizacion": {
+      "objectTypeId": "0-3",
+      "allowed_properties": [
+        "tipo_cliente_operacion",
+        "estado_cotizacion",
+        "producto_cotizado",
+        "incoterm",
+        "puerto_salida",
+        "mercado_origen"
+      ]
+    },
+    "update_cotizacion_status": {
+      "objectTypeId": "0-3",
+      "allowed_properties": ["estado_cotizacion", "fecha_envio_cotizacion"],
+      "status_transition_rule": "Cuando el nuevo estado sea cotizacion_enviada, completar fecha_envio_cotizacion."
+    }
+  },
+  "validation_rules": {
+    "date_format": "YYYY-MM-DD",
+    "enumerations_are_case_sensitive": true,
+    "reject_unknown_properties": true,
+    "reject_unknown_object_labels": false,
+    "prefer_object_type_id_over_label": true
+  },
+  "integration_guidelines": {
+    "preferred_object_reference": "objectTypeId",
+    "preferred_property_reference": "internal_name",
+    "safe_update_mode": true,
+    "log_each_state_change": true,
+    "create_follow_up_after_quote_sent": true
+  }
+}

@@ -4,18 +4,27 @@ A luxury enterprise marketing website for **J Huge International (JHI)**, a glob
 
 ## ✨ Features
 
+### User-Facing Features
+
 - **🌍 Interactive 3D Globe** - Real-time visualization of trade routes from Brazil to 12+ destination countries using Three.js and globe.gl
 - **🌐 Multi-Language Support** - Full i18n for English, Spanish, and Chinese (130+ translation keys)
-- **🤖 AI Sales Agent** - Gemini 2.5 Flash-powered chat that acts as a professional sales agent, collects quote information, and syncs directly with HubSpot CRM
-- **🔄 HubSpot CRM Integration** - Automatic contact creation and deal tracking. Chat conversations convert to HubSpot contacts + deals with full quote details (commodity, quantity, origin, destination, incoterms)
-- **📊 Quote Status Lookup** - Users can check the status of their existing quotes by providing their email. The AI fetches and displays active deals from HubSpot with stage, quantity, and creation date
+- **🤖 AI Sales Agent** - Gemini-powered chat that acts as a professional sales agent, collects quote information, and syncs directly with HubSpot CRM
+- **📝 Validated Contact Forms** - Zod v4 schema validation on client and server with toast feedback
 - **🎨 Premium Gold Aesthetic** - Dark/light theme with custom gold (#c9a84c) accent, glass morphism, and shimmer effects
 - **📱 Responsive Design** - Mobile-first approach with smooth scroll navigation between sections
 - **📊 Dynamic Animations** - Scroll-triggered animations powered by Framer Motion
-- **📝 Validated Contact Forms** - Zod v4 schema validation on client and server with toast feedback
 - **📈 Animated Statistics** - Counter animations and SVG world map visualizations
 - **❓ Interactive FAQ** - 10-item accordion covering brokerage process, commodities, and trade logistics
-- **🔒 Error Resilience** - Graceful error handling for AI quota limits, HubSpot conflicts, and connection failures. Deals are always saved even if contact association fails
+
+### Backend & CRM Integration (Phases 1-3 Complete ✅)
+
+- **🔄 HubSpot CRM Integration** - Complete centralized service layer for Contacts, Companies, and Cotizaciones (custom object 0-3). Automatic contact creation, quote tracking, and association management.
+- **📊 7-State Quote Machine** - Business state machine with validated transitions: `levantando_precio` → `validando_logistica` → `preparando_cotizacion_formal` → `cotizacion_enviada` → `en_negociacion` → `ganada`/`perdida`
+- **📧 Email Automation** - React-based email templates powered by Resend (3,000 free emails/month). Automated notifications for quote sent, won, lost, and internal team alerts.
+- **📋 Quote Status Lookup** - Users can check the status of their existing quotes by providing their email. The AI fetches and displays active quotes from HubSpot with stage, quantity, and creation date.
+- **✅ Business Rules Engine** - Validation system enforcing enum constraints, required fields by state, automatic date setting, and association checks before state transitions.
+- **🔒 Error Resilience** - Graceful error handling for AI quota limits, HubSpot conflicts, and connection failures. Quotes are always saved even if contact association fails.
+- **📚 Complete API Routes** - RESTful endpoints for quote CRUD (`/api/cotizaciones`) and state transitions (`/api/cotizaciones/[id]/estado`), with full validation and error handling.
 
 ## 🛠️ Tech Stack
 
@@ -35,8 +44,9 @@ A luxury enterprise marketing website for **J Huge International (JHI)**, a glob
 | **Forms** | React Hook Form + Zod v4 |
 | **i18n** | Custom in-house (EN/ES/ZH) |
 | **Theme** | next-themes (dark/light) |
-| **AI Engine** | Google Gemini 2.5 Flash via `@google/generative-ai` |
-| **CRM** | HubSpot (contacts, deals, pipeline) |
+| **AI Engine** | Google Gemini via `@google/generative-ai` |
+| **CRM** | HubSpot (contacts, companies, cotizaciones custom object) |
+| **Email** | Resend (3,000 free/month) + React Email templates |
 | **Toast** | Sonner |
 
 ## 📁 Project Structure
@@ -51,8 +61,13 @@ A luxury enterprise marketing website for **J Huge International (JHI)**, a glob
 │   │   ├── robots.ts          # Dynamic robots.txt generation
 │   │   └── api/
 │   │       ├── route.ts       # GET /api (health check)
-│   │       ├── chat/route.ts  # POST /api/chat (Gemini AI + HubSpot integration)
-│   │       └── contact/route.ts # POST /api/contact (form submission)
+│   │       ├── chat/route.ts  # POST /api/chat (Gemini AI + HubSpot service integration)
+│   │       ├── contact/route.ts # POST /api/contact (form submission + HubSpot service)
+│   │       └── cotizaciones/  # ✅ NEW Quote management API
+│   │           ├── route.ts   # POST/GET cotizaciones (CRUD)
+│   │           └── [id]/
+│   │               └── estado/
+│   │                   └── route.ts # PATCH state transitions with validations
 │   ├── components/
 │   │   ├── jhi/               # JHI-specific components
 │   │   │   ├── Header.tsx
@@ -76,7 +91,25 @@ A luxury enterprise marketing website for **J Huge International (JHI)**, a glob
 │       ├── i18n.ts            # Translation system (EN/ES/ZH) - client-side
 │       ├── i18n-server.ts     # Translation system - server-side (for Server Components)
 │       ├── store.ts           # Zustand store (language, chatOpen)
-│       └── utils.ts           # cn() utility (clsx + tailwind-merge)
+│       ├── utils.ts           # cn() utility (clsx + tailwind-merge)
+│       ├── hubspot/           # ✅ NEW HubSpot integration layer
+│       │   ├── types.ts       # TypeScript types for all HubSpot objects
+│       │   ├── service.ts     # CRUD service for Contacts, Companies, Cotizaciones
+│       │   ├── index.ts       # Public API exports
+│       │   └── docs/          # Data contracts for AI
+│       │       ├── hubspot_schema.json    # Schema definition
+│       │       ├── business_rules.md      # Business rules documentation
+│       │       └── sync_actions.md        # Sync actions documentation
+│       ├── cotizacion/        # ✅ NEW Quote business logic
+│       │   ├── state-machine.ts  # 7-state machine with validations
+│       │   └── validator.ts      # Input validation engine
+│       └── email/             # ✅ NEW Email automation
+│           ├── service.ts     # Resend integration
+│           └── templates/     # React email templates
+│               ├── cotizacion-enviada.tsx
+│               ├── ganada.tsx
+│               ├── perdida.tsx
+│               └── internal-notification.tsx
 ├── public/
 │   ├── images/                # Static assets (logos, commodities)
 │   ├── logo.svg
@@ -84,7 +117,8 @@ A luxury enterprise marketing website for **J Huge International (JHI)**, a glob
 ├── .env.local                 # Environment variables (git-ignored)
 ├── Caddyfile                  # Reverse proxy configuration
 ├── netlify.toml               # Netlify deployment config
-└── examples/websocket/        # WebSocket implementation examples
+├── IMPLEMENTATION_COMPLETE.md # ✅ Phases 1-3 implementation summary
+└── SETUP_COMPLETE_GUIDE.md    # ✅ Complete setup guide (Spanish)
 ```
 
 ## 🚀 Getting Started
@@ -123,11 +157,15 @@ Create a `.env.local` file with the following:
 ```env
 # Google AI (Gemini)
 GOOGLE_AI_API_KEY=your_key_here
-GOOGLE_MODEL=gemini-2.5-flash
+GOOGLE_MODEL=gemini-3-flash-preview
 
 # HubSpot CRM
 HUBSPOT_API_KEY=pat-na1-xxxxx
 HUBSPOT_PIPELINE_ID=default
+
+# Email Service (Resend - Free tier: 3,000 emails/month)
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxx
+EMAIL_FROM=onboarding@resend.dev  # Or your verified domain
 
 # SEO
 NEXT_PUBLIC_BASE_URL=https://jhugeinternational.com
@@ -144,8 +182,19 @@ GOOGLE_SITE_VERIFICATION=your_verification_code
 **HubSpot Private App:**
 1. Go to `Settings (⚙️) → Integrations → Private Apps`
 2. **Create a private app** → Name it "JHI Chat Integration"
-3. Enable scopes: `crm.objects.contacts.write`, `crm.objects.deals.write`
+3. Enable scopes:
+   - `crm.objects.contacts.write`
+   - `crm.objects.deals.write`
+   - `crm.schemas.contacts.write` (for creating custom fields)
+   - `crm.schemas.deals.write` (for creating custom fields)
+   - `crm.schemas.companies.write` (for creating custom fields)
 4. Copy the token (starts with `pat-na1-...`)
+
+**Resend (Email Service):**
+1. Go to [resend.com](https://resend.com)
+2. Sign up and create an API key
+3. Free tier: 3,000 emails/month
+4. For production, verify your domain in Resend dashboard
 
 ## 🌐 Deployment
 
@@ -183,26 +232,39 @@ Use the included `Caddyfile` for reverse proxy setup on port 81:
 
 ## 📡 API Endpoints
 
+### Public Endpoints
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api` | GET | Health check - returns `{"message": "Hello, world!"}` |
-| `/api/chat` | POST | AI Sales Agent chat - accepts `{messages, message, language}`, returns `{message}` with optional HubSpot sync |
-| `/api/contact` | POST | Contact form - validates `{name, email, commodity, quantity, message}` |
+| `/api/chat` | POST | AI Sales Agent chat - accepts `{messages, message, language}`, returns `{message}` with HubSpot sync via centralized service |
+| `/api/contact` | POST | Contact form - validates `{name, email, commodity, quantity, origin, destination, incoterms, message}` and creates cotización in HubSpot |
 | `/sitemap.xml` | GET | Auto-generated sitemap |
 | `/robots.txt` | GET | Auto-generated robots.txt |
+
+### Quote Management API (Internal/Backend)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/cotizaciones` | POST | Create new cotización with validation and HubSpot sync |
+| `/api/cotizaciones` | GET | List/search cotizaciones (by status, email, or all) |
+| `/api/cotizaciones/[id]` | GET | Get cotización details by ID |
+| `/api/cotizaciones/[id]/estado` | PATCH | Transition cotización state with validations, auto-actions (emails, tasks, notes) |
 
 ## 🤖 AI Chat — How It Works
 
 ### Sales Agent Flow
 
-The AI acts as a **professional sales agent** that collects quote information and syncs it to HubSpot:
+The AI acts as a **professional sales agent** that collects quote information and syncs it to HubSpot via the centralized service layer:
 
 1. **User** initiates a chat conversation
 2. **AI** asks qualifying questions (commodity, quantity, origin, destination, incoterms, name, email)
 3. **When all info is collected**, AI responds with a natural message + hidden JSON action block
-4. **Backend** detects the action and creates:
-   - **Contact** in HubSpot (or reuses existing by email lookup)
-   - **Deal** in HubSpot with all quote details in the deal name and description
+4. **Backend** detects the action and creates a cotización via `HubSpotService.cotizaciones.create()`:
+   - Finds or creates **Contact** in HubSpot (by email lookup)
+   - Creates **Cotización** (custom object 0-3) with all quote details
+   - Associates contact and company if available
+   - Sets default state to `levantando_precio`
 5. **User** sees a clean response (JSON is stripped from display)
 
 ### Quote Status Lookup
@@ -211,16 +273,36 @@ Users can check existing quotes:
 
 1. **User**: "What's the status of my quote? My email is user@example.com"
 2. **AI** generates a `check_status` action with the email
-3. **Backend** searches HubSpot for deals associated with that contact
-4. **Response** includes a formatted summary of all pending deals sorted by date
+3. **Backend** calls `HubSpotService.cotizaciones.getByContactEmail(email)`:
+   - Finds contact by email
+   - Fetches associated cotizaciones
+   - Filters out closed deals (ganada/perdida)
+   - Returns formatted summary sorted by date
+4. **Response** includes all pending quotes with stage, quantity, and creation date
+
+### Email Automation
+
+When cotización state changes (via API or manual transition), the state machine triggers:
+
+| State Change | Email to Client | Email to Internal | Auto-Actions |
+|--------------|----------------|-------------------|--------------|
+| `levantando_precio` | ❌ Optional | ✅ Yes | Create task: "Conseguir precio base" (24h) |
+| `validando_logistica` | ❌ Optional | ✅ Yes | Create task: "Validar logística" (24h) |
+| `preparando_cotizacion_formal` | ❌ No | ❌ No | Create task: "Emitir cotización formal" (24h) |
+| `cotizacion_enviada` | ✅ **YES** (automatic) | ✅ Yes | Set fecha_envio, create follow-up (48h) |
+| `en_negociacion` | ❌ No | ✅ Yes | Create task: "Registrar ajustes" |
+| `ganada` | ✅ Yes (confirmation) | ✅ Yes | Close open tasks |
+| `perdida` | ⚠️ Optional | ✅ Yes | Record reason, close tasks |
 
 ### Error Resilience
 
 | Scenario | Behavior |
 |----------|----------|
 | Gemini quota exceeded | Graceful error message to user, logs on server |
-| Contact already exists in HubSpot | Reuses existing contact, creates deal |
-| Contact creation fails | Creates deal without contact association — data is never lost |
+| Contact already exists in HubSpot | Reuses existing contact, creates cotización |
+| Contact creation fails | Creates cotización without contact association — data is never lost |
+| HubSpot API error | Logs error, retries once, doesn't block user request |
+| Email sending fails | Logs failure, doesn't block state transition |
 | Connection lost | User sees "Connection lost. Please try again." |
 
 ## 🎨 Design System
@@ -329,4 +411,61 @@ This project is proprietary software for J Huge International.
 
 ---
 
-**Built with ❤️ using Next.js, Gemini AI, and HubSpot CRM**
+## 🚀 Next Steps: Operations Dashboard (Phase 4)
+
+### Vision
+
+Build an **Operations Command Center** (NOT a HubSpot duplicate) that provides:
+
+1. **Today's Focus** - What requires attention NOW
+   - Overdue follow-ups
+   - Quotes stuck in a state (>24h)
+   - Quotes ready to advance
+
+2. **Quick Actions** - One-click operations
+   - Change quote state
+   - Send manual email to client
+   - Add internal note
+   - Assign to different salesperson
+
+3. **Smart Alerts** - Automated notifications
+   - 48h follow-up reminders
+   - Delay alerts (>24h in same state)
+   - Quote won/lost notifications
+
+4. **Business Analytics** - Insights HubSpot Free doesn't provide
+   - Conversion rate by product
+   - Average time per state
+   - Top clients by volume
+   - Monthly trends
+
+### Architecture Principle
+
+```
+Operations Dashboard (Your App)
+  • Command center
+  • Smart alerts
+  • Quick actions
+  • Business analytics
+        ↓ reads/writes
+HubSpot (CRM / System of Record)
+  • Contact storage
+  • Company storage
+  • Quote records
+  • Historical tracking
+```
+
+**Your dashboard = Pilot's control panel**  
+**HubSpot = Database**
+
+### Documentation
+
+See these files for details:
+- `IMPLEMENTATION_COMPLETE.md` - Phases 1-3 summary
+- `SETUP_COMPLETE_GUIDE.md` - Complete setup guide (Spanish)
+- `src/lib/hubspot/docs/business_rules.md` - Business rules
+- `src/lib/hubspot/docs/sync_actions.md` - Available actions
+
+---
+
+**Built with ❤️ using Next.js, Gemini AI, HubSpot CRM, and Resend**
