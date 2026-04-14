@@ -61,3 +61,4 @@ prompt
 test
 next-env.d.ts
 *.tsbuildinfo
+SETUP_COMPLETE_GUIDE.md
