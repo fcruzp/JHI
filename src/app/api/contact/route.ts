@@ -48,8 +48,12 @@ export async function POST(request: NextRequest) {
       const normalizeProducto = (val: string): ProductoCotizado => {
         const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         if (lower.includes('azucar') || lower.includes('sugar')) return 'azucar';
-        if (lower.includes('chicken') || lower.includes('paw') || lower.includes('pollo')) return 'chicken_paws';
-        // For other valid commodities not in enum, default to 'otro' but keep original name in description
+        if (lower.includes('chicken') || lower.includes('paw')) return 'chicken_paws';
+        if (lower.includes('grano') || lower.includes('grain')) return 'granos';
+        if (lower.includes('cafe') || lower.includes('coffee')) return 'cafe';
+        if (lower.includes('aceite') || lower.includes('oil')) return 'aceites';
+        if (lower.includes('lacteo') || lower.includes('dairy')) return 'lacteos';
+        // For other products, default to 'otro'
         return 'otro';
       };
 

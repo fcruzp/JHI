@@ -9,6 +9,7 @@ import { GanadaEmail } from './templates/ganada';
 import { PerdidaEmail } from './templates/perdida';
 import { InternalNotificationEmail } from './templates/internal-notification';
 import { LevantandoPrecioEmail } from './templates/levantando-precio';
+import { StatusUpdateEmail } from './templates/status-update';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@jhugeinternational.com';
@@ -25,7 +26,7 @@ if (!RESEND_API_KEY) {
 // Email Templates Registry
 // ============================================================
 
-type EmailTemplateName = 'cotizacion_enviada' | 'ganada' | 'perdida' | 'levantando_precio' | 'internal_notification';
+type EmailTemplateName = 'cotizacion_enviada' | 'ganada' | 'perdida' | 'levantando_precio' | 'internal_notification' | 'status_update';
 
 interface EmailTemplateData {
   levantando_precio: {
@@ -59,6 +60,15 @@ interface EmailTemplateData {
     estado: string;
     ownerEmail: string;
     details?: string;
+  };
+  status_update: {
+    nombre: string;
+    producto: string;
+    incoterm: string;
+    estado: string;
+    comentario: string;
+    cotizacionId?: string;
+    cantidad?: string;
   };
 }
 
@@ -118,6 +128,16 @@ export class EmailService {
   }
 
   /**
+   * Send manual status update with custom comment
+   */
+  static async sendStatusUpdate(
+    to: string,
+    data: EmailTemplateData['status_update']
+  ): Promise<{ success: boolean; messageId?: string }> {
+    return this.sendTemplate('status_update', to, data);
+  }
+
+  /**
    * Send email based on template name (public for state machine use)
    */
   static async sendTemplate<T extends EmailTemplateName>(
@@ -161,6 +181,10 @@ export class EmailService {
         case 'internal_notification':
           subject = `[Acción requerida] Cotización ${(data as EmailTemplateData['internal_notification']).cotizacionId} – ${(data as EmailTemplateData['internal_notification']).estado}`;
           reactComponent = InternalNotificationEmail(data as EmailTemplateData['internal_notification']);
+          break;
+        case 'status_update':
+          subject = `Actualización: ${(data as EmailTemplateData['status_update']).producto} – JHI`;
+          reactComponent = StatusUpdateEmail(data as EmailTemplateData['status_update']);
           break;
         default:
           throw new Error(`Unknown email template: ${template}`);
@@ -208,6 +232,8 @@ export class EmailService {
         return `Actualización de cotización – ${(data as EmailTemplateData['perdida']).producto}`;
       case 'internal_notification':
         return `[Acción requerida] Cotización ${(data as EmailTemplateData['internal_notification']).cotizacionId} – ${(data as EmailTemplateData['internal_notification']).estado}`;
+      case 'status_update':
+        return `Actualización: ${(data as EmailTemplateData['status_update']).producto} – JHI`;
       default:
         return 'Notificación de J Huge International';
     }

@@ -16,13 +16,21 @@ import {
   HUBSPOT_OBJECT_TYPES,
   ASSOCIATION_TYPES,
   EstadoCotizacion,
+  TipoDeProceso,
+  EstadoDelSuplidor,
+  EstadoOperativoCotizacion,
+  ResultadoDeCotizacion,
+  PRODUCTO_LABELS,
 } from './types';
 
 const HUBSPOT_API_URL = 'https://api.hubapi.com';
 const HUBSPOT_API_KEY = process.env.HUBSPOT_API_KEY;
 
-if (!HUBSPOT_API_KEY) {
-  throw new Error('HUBSPOT_API_KEY environment variable is required');
+function getApiKey(): string {
+  if (!HUBSPOT_API_KEY) {
+    throw new Error('HUBSPOT_API_KEY environment variable is required. Please create a .env.local file with your HubSpot API key.');
+  }
+  return HUBSPOT_API_KEY;
 }
 
 // ============================================================
@@ -32,7 +40,7 @@ if (!HUBSPOT_API_KEY) {
 function getHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+    Authorization: `Bearer ${getApiKey()}`,
   };
 }
 
@@ -152,7 +160,57 @@ export class ContactsService {
     console.log('[Contacts] Creating new contact for:', data.email);
     return this.create(data);
   }
+
+  /**
+   * Get contact by ID
+   */
+  static async getById(id: string): Promise<HubSpotObject | null> {
+    const response = await fetch(
+      `${HUBSPOT_API_URL}/crm/v3/objects/contacts/${id}?properties=email,firstname,lastname,phone,rol_en_la_operacion`,
+      {
+        headers: getHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      await handleHubSpotError(response, 'GetById (Contacts)');
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Get multiple contacts by IDs in a single batch
+   */
+  static async batchGetByIds(ids: string[]): Promise<HubSpotObject[]> {
+    if (ids.length === 0) return [];
+    
+    // Remove duplicates and empty IDs
+    const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+    
+    const response = await fetch(
+      `${HUBSPOT_API_URL}/crm/v3/objects/contacts/batch/read`,
+      {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          properties: ['email', 'firstname', 'lastname', 'phone'],
+          inputs: uniqueIds.map(id => ({ id })),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      await handleHubSpotError(response, 'BatchGetByIds (Contacts)');
+    }
+
+    const data = await response.json();
+    return data.results || [];
+  }
 }
+
+// ============================================================
 
 // ============================================================
 // COMPANIES
@@ -274,14 +332,31 @@ export class CotizacionesService {
       properties.dealname = data.dealName;
     } else if (data.producto_cotizado === 'otro' && data.producto_nombre_original) {
       // Use original commodity name when enum is 'otro'
-      properties.dealname = `${data.producto_nombre_original} — ${data.amount || 'N/A'} MT (${data.incoterm})`;
+      properties.dealname = `${data.producto_nombre_original} — ${data.amount || 'N/A'} MT (${(data.incoterm || '').toUpperCase()})`;
     } else {
-      properties.dealname = `${data.producto_cotizado} — ${data.amount || 'N/A'} MT (${data.incoterm})`;
+      const productLabel = PRODUCTO_LABELS[data.producto_cotizado] || data.producto_cotizado;
+      properties.dealname = `${productLabel} — ${data.amount || 'N/A'} MT (${(data.incoterm || '').toUpperCase()})`;
     }
 
     // MANDATORY: Set pipeline and dealstage for Sales Pipeline visibility
     properties.pipeline = 'default';
     properties.dealstage = 'appointmentscheduled'; // Default initial stage
+
+    // --- Operational Defaults (Phase 4) ---
+    const today = new Date();
+    const formattedToday = today.toISOString().split('T')[0];
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    const formattedNextWeek = nextWeek.toISOString().split('T')[0];
+
+    properties.tipo_de_proceso = 'cotizacion';
+    properties.estado_del_suplidor = 'pendiente_por_contactar';
+    properties.fecha_solicitud_a_suplidor = formattedToday;
+    properties.fecha_respuesta_del_suplidor = formattedNextWeek;
+    properties.estado_de_la_cotizacion = 'solicitud_recibida';
+    properties.trial_solicitado = 'false';
+    properties.resultado_de_la_cotizacion = 'pendiente';
+    // --------------------------------------
 
     if (data.amount) properties.amount = String(data.amount);
     if (data.description) properties.description = data.description;
@@ -359,7 +434,7 @@ export class CotizacionesService {
    */
   static async getById(id: string): Promise<HubSpotObject | null> {
     const response = await fetch(
-      `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}/${id}?properties=dealname,estado_cotizacion,fecha_envio_cotizacion,producto_cotizado,incoterm,tipoclienteoperacion,puerto_salida,mercado_origen,amount,description,createdate,pipeline,dealstage`,
+      `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}/${id}?properties=dealname,estado_cotizacion,fecha_envio_cotizacion,producto_cotizado,incoterm,tipoclienteoperacion,puerto_salida,mercado_origen,amount,description,createdate,pipeline,dealstage,tipo_de_proceso,estado_del_suplidor,fecha_solicitud_a_suplidor,fecha_respuesta_del_suplidor,estado_de_la_cotizacion,trial_solicitado,resultado_de_la_cotizacion,updatedate`,
       {
         headers: getHeaders(),
       }
@@ -371,6 +446,94 @@ export class CotizacionesService {
     }
 
     return response.json();
+  }
+
+  /**
+   * Get associated contact for a cotizacion
+   */
+  static async getAssociatedContact(cotizacionId: string): Promise<HubSpotObject | null> {
+    const response = await fetch(
+      `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}/${cotizacionId}/associations/contacts`,
+      {
+        headers: getHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      await handleHubSpotError(response, 'GetAssociatedContact');
+    }
+
+    const data = await response.json();
+    const contactId = data.results?.[0]?.id;
+    
+    if (!contactId) return null;
+
+    return ContactsService.getById(contactId);
+  }
+
+  /**
+   * Get associated contacts for multiple cotizaciones in a single batch
+   * Returns a map of cotizacionId -> Contact properties
+   */
+  static async batchGetAssociatedContacts(cotizacionIds: string[]): Promise<Record<string, any>> {
+    if (cotizacionIds.length === 0) return {};
+
+    // 1. Fetch associations in batch
+    const assocResponse = await fetch(
+      `${HUBSPOT_API_URL}/crm/v3/associations/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}/${HUBSPOT_OBJECT_TYPES.CONTACTS}/batch/read`,
+      {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          inputs: cotizacionIds.map(id => ({ id })),
+        }),
+      }
+    );
+
+    if (!assocResponse.ok) {
+      await handleHubSpotError(assocResponse, 'BatchGetAssociations');
+    }
+
+    const assocData = await assocResponse.json();
+    
+    // Map of CotizacionID -> ContactID
+    const cotizacionToContactMap: Record<string, string> = {};
+    const contactIdsToFetch: string[] = [];
+
+    assocData.results?.forEach((result: any) => {
+      const contactId = result.to?.[0]?.id;
+      if (contactId) {
+        cotizacionToContactMap[result.from.id] = contactId;
+        contactIdsToFetch.push(contactId);
+      }
+    });
+
+    if (contactIdsToFetch.length === 0) return {};
+
+    // 2. Fetch contact details in batch
+    const contacts = await ContactsService.batchGetByIds(contactIdsToFetch);
+    const contactDetailsMap: Record<string, any> = {};
+    
+    contacts.forEach(contact => {
+      contactDetailsMap[contact.id] = {
+        id: contact.id,
+        email: contact.properties.email,
+        firstname: contact.properties.firstname,
+        lastname: contact.properties.lastname,
+        phone: contact.properties.phone,
+      };
+    });
+
+    // 3. Final mapping CotizacionID -> ContactDetails
+    const finalMap: Record<string, any> = {};
+    Object.entries(cotizacionToContactMap).forEach(([cotId, conId]) => {
+      if (contactDetailsMap[conId]) {
+        finalMap[cotId] = contactDetailsMap[conId];
+      }
+    });
+
+    return finalMap;
   }
 
   /**
@@ -403,6 +566,15 @@ export class CotizacionesService {
     if (data.mercado_origen) properties.mercado_origen = data.mercado_origen;
     if (data.amount) properties.amount = String(data.amount);
     if (data.description) properties.description = data.description;
+    
+    // Operational fields (Phase 4 - Admin Panel)
+    if (data.tipodeproceso) properties.tipo_de_proceso = data.tipodeproceso;
+    if (data.estadodelsuplidor) properties.estado_del_suplidor = data.estadodelsuplidor;
+    if (data.fechasolicituda_suplidor) properties.fecha_solicitud_a_suplidor = data.fechasolicituda_suplidor;
+    if (data.fecharespuestadel_suplidor) properties.fecha_respuesta_del_suplidor = data.fecharespuestadel_suplidor;
+    if (data.estadodela_cotizacion) properties.estado_de_la_cotizacion = data.estadodela_cotizacion;
+    if (data.trial_solicitado !== undefined) properties.trial_solicitado = String(data.trial_solicitado);
+    if (data.resultadodela_cotizacion) properties.resultado_de_la_cotizacion = data.resultadodela_cotizacion;
 
     const response = await fetch(
       `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}/${id}`,
@@ -575,10 +747,13 @@ export class CotizacionesService {
     sortBy?: string;
     direction?: 'ASCENDING' | 'DESCENDING';
   }): Promise<{ results: HubSpotObject[]; paging?: HubSpotPagedResponse['paging'] }> {
+    const params = new URLSearchParams();
+    params.set('limit', String(options?.limit || 100));
+    if (options?.after) params.set('after', options.after);
+    if (options?.sortBy) params.set('sort', `${options.sortBy}:${options.direction || 'DESCENDING'}`);
+
     const response = await fetch(
-      `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}?limit=${options?.limit || 100}${
-        options?.after ? `&after=${options.after}` : ''
-      }`,
+      `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}?${params.toString()}&properties=dealname,estado_cotizacion,fecha_envio_cotizacion,producto_cotizado,incoterm,tipoclienteoperacion,puerto_salida,mercado_origen,amount,description,createdate,pipeline,dealstage,tipo_de_proceso,estado_del_suplidor,fecha_solicitud_a_suplidor,fecha_respuesta_del_suplidor,estado_de_la_cotizacion,trial_solicitado,resultado_de_la_cotizacion,updatedate`,
       {
         headers: getHeaders(),
       }
@@ -589,6 +764,179 @@ export class CotizacionesService {
     }
 
     return response.json();
+  }
+
+  /**
+   * Search cotizaciones with advanced filters (for Admin Panel)
+   * Supports filtering by operational fields
+   */
+  static async searchWithFilters(options?: {
+    query?: string;
+    estadodelsuplidor?: EstadoDelSuplidor[];
+    estadodela_cotizacion?: EstadoOperativoCotizacion[];
+    resultadodela_cotizacion?: ResultadoDeCotizacion[];
+    trial_solicitado?: boolean;
+    tipodeproceso?: TipoDeProceso[];
+    fecha_solicitud_desde?: string;
+    fecha_solicitud_hasta?: string;
+    fecha_respuesta_desde?: string;
+    fecha_respuesta_hasta?: string;
+    limit?: number;
+    after?: string;
+  }): Promise<{ results: HubSpotObject[]; paging?: HubSpotPagedResponse['paging'] }> {
+    const filters: Array<{
+      propertyName: string;
+      operator: string;
+      value?: string;
+      values?: string[];
+    }> = [];
+
+    // Filter by estado del suplidor (multi-select)
+    if (options?.estadodelsuplidor && options.estadodelsuplidor.length > 0) {
+      filters.push({
+        propertyName: 'estado_del_suplidor',
+        operator: 'IN',
+        values: options.estadodelsuplidor,
+      });
+    }
+
+    // Filter by estado de cotización operativo (multi-select)
+    if (options?.estadodela_cotizacion && options.estadodela_cotizacion.length > 0) {
+      filters.push({
+        propertyName: 'estado_de_la_cotizacion',
+        operator: 'IN',
+        values: options.estadodela_cotizacion,
+      });
+    }
+
+    // Filter by resultado (multi-select)
+    if (options?.resultadodela_cotizacion && options.resultadodela_cotizacion.length > 0) {
+      filters.push({
+        propertyName: 'resultado_de_la_cotizacion',
+        operator: 'IN',
+        values: options.resultadodela_cotizacion,
+      });
+    }
+
+    // Filter by trial solicitado (boolean)
+    if (options?.trial_solicitado !== undefined) {
+      filters.push({
+        propertyName: 'trial_solicitado',
+        operator: 'EQ',
+        value: String(options.trial_solicitado),
+      });
+    }
+
+    // Filter by tipo de proceso (multi-select)
+    if (options?.tipodeproceso && options.tipodeproceso.length > 0) {
+      filters.push({
+        propertyName: 'tipo_de_proceso',
+        operator: 'IN',
+        values: options.tipodeproceso,
+      });
+    }
+
+    // Filter by fecha solicitud (range)
+    if (options?.fecha_solicitud_desde) {
+      filters.push({
+        propertyName: 'fecha_solicitud_a_suplidor',
+        operator: 'GTE',
+        value: options.fecha_solicitud_desde,
+      });
+    }
+    if (options?.fecha_solicitud_hasta) {
+      filters.push({
+        propertyName: 'fecha_solicitud_a_suplidor',
+        operator: 'LTE',
+        value: options.fecha_solicitud_hasta,
+      });
+    }
+
+    // Filter by fecha respuesta (range)
+    if (options?.fecha_respuesta_desde) {
+      filters.push({
+        propertyName: 'fecha_respuesta_del_suplidor',
+        operator: 'GTE',
+        value: options.fecha_respuesta_desde,
+      });
+    }
+    if (options?.fecha_respuesta_hasta) {
+      filters.push({
+        propertyName: 'fecha_respuesta_del_suplidor',
+        operator: 'LTE',
+        value: options.fecha_respuesta_hasta,
+      });
+    }
+
+    const body: Record<string, unknown> = {
+      filterGroups: filters.length > 0 ? [{ filters }] : [],
+      sorts: [{ propertyName: 'createdate', direction: 'DESCENDING' }],
+      limit: options?.limit || 100,
+      query: options?.query,
+      properties: [
+        'dealname',
+        'estado_cotizacion',
+        'fecha_envio_cotizacion',
+        'producto_cotizado',
+        'incoterm',
+        'tipo_cliente_operacion',
+        'puerto_salida',
+        'mercado_origen',
+        'amount',
+        'description',
+        'dealstage',
+        'createdate',
+        'updatedate',
+        'tipo_de_proceso',
+        'estado_del_suplidor',
+        'fecha_solicitud_a_suplidor',
+        'fecha_respuesta_del_suplidor',
+        'estado_de_la_cotizacion',
+        'trial_solicitado',
+        'resultado_de_la_cotizacion',
+      ],
+    };
+
+    if (options?.after) {
+      body.after = options.after;
+    }
+
+    const response = await fetch(
+      `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}/search`,
+      {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!response.ok) {
+      await handleHubSpotError(response, 'SearchWithFilters');
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Delete (archive) multiple cotizaciones in a single batch
+   */
+  static async deleteBatch(ids: string[]): Promise<boolean> {
+    const response = await fetch(
+      `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}/batch/archive`,
+      {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          inputs: ids.map(id => ({ id })),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      await handleHubSpotError(response, 'DeleteBatch');
+    }
+
+    return true; // Usually returns 204 No Content
   }
 }
 

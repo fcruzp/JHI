@@ -265,6 +265,10 @@ export async function POST(request: NextRequest) {
           const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
           if (lower.includes('azucar') || lower.includes('sugar')) return 'azucar';
           if (lower.includes('chicken') || lower.includes('paw')) return 'chicken_paws';
+          if (lower.includes('grano') || lower.includes('grain')) return 'granos';
+          if (lower.includes('cafe') || lower.includes('coffee')) return 'cafe';
+          if (lower.includes('aceite') || lower.includes('oil')) return 'aceites';
+          if (lower.includes('lacteo') || lower.includes('dairy')) return 'lacteos';
           return 'otro';
         };
 

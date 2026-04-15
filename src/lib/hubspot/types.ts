@@ -15,6 +15,10 @@ export type EstadoCotizacion =
 export type ProductoCotizado =
   | 'azucar'
   | 'chicken_paws'
+  | 'granos'
+  | 'cafe'
+  | 'aceites'
+  | 'lacteos'
   | 'otro';
 
 export type Incoterm =
@@ -35,6 +39,31 @@ export type RolEnLaOperacion =
   | 'finanzas'
   | 'otro';
 
+// Operational state types (internal backoffice workflow)
+// NOTE: These types are for TypeScript. Actual HubSpot property names use underscores.
+export type TipoDeProceso =
+  | 'cotizacion'
+  | 'oportunidad_trial';
+
+export type EstadoDelSuplidor =
+  | 'pendiente_por_contactar'
+  | 'contactado'
+  | 'esperando_valores'
+  | 'valores_recibidos';
+
+export type EstadoOperativoCotizacion =
+  | 'solicitud_recibida'
+  | 'en_preparacion'
+  | 'enviada'
+  | 'en_revision_del_cliente'
+  | 'aprobada_para_trial'
+  | 'rechazada';
+
+export type ResultadoDeCotizacion =
+  | 'pendiente'
+  | 'ganada_para_continuar'
+  | 'perdida';
+
 // Human-readable labels
 export const ESTADO_LABELS: Record<EstadoCotizacion, string> = {
   levantando_precio: 'Levantando precio',
@@ -48,7 +77,11 @@ export const ESTADO_LABELS: Record<EstadoCotizacion, string> = {
 
 export const PRODUCTO_LABELS: Record<ProductoCotizado, string> = {
   azucar: 'Azúcar',
-  chicken_paws: 'Chicken paws',
+  chicken_paws: 'Chicken Paws',
+  granos: 'Granos',
+  cafe: 'Café',
+  aceites: 'Aceites',
+  lacteos: 'Lácteos',
   otro: 'Otro',
 };
 
@@ -71,6 +104,43 @@ export const ROL_LABELS: Record<RolEnLaOperacion, string> = {
   logistica: 'Logística',
   finanzas: 'Finanzas',
   otro: 'Otro',
+};
+
+export const TIPO_PROCESO_LABELS: Record<TipoDeProceso, string> = {
+  cotizacion: 'Cotización',
+  oportunidad_trial: 'Oportunidad Trial',
+};
+
+export const ESTADO_SUPLIDOR_LABELS: Record<EstadoDelSuplidor, string> = {
+  pendiente_por_contactar: 'Pendiente por contactar',
+  contactado: 'Contactado',
+  esperando_valores: 'Esperando valores',
+  valores_recibidos: 'Valores recibidos',
+};
+
+export const ESTADO_OPERATIVO_LABELS: Record<EstadoOperativoCotizacion, string> = {
+  solicitud_recibida: 'Solicitud recibida',
+  en_preparacion: 'En preparación',
+  enviada: 'Enviada',
+  en_revision_del_cliente: 'En revisión del cliente',
+  aprobada_para_trial: 'Aprobada para trial',
+  rechazada: 'Rechazada',
+};
+
+export const RESULTADO_COTIZACION_LABELS: Record<ResultadoDeCotizacion, string> = {
+  pendiente: 'Pendiente',
+  ganada_para_continuar: 'Ganada para continuar',
+  perdida: 'Perdida',
+};
+
+export const DEALSTAGE_LABELS: Record<string, string> = {
+  appointmentscheduled: 'Cita programada',
+  qualifiedtobuy: 'Calificado',
+  presentationscheduled: 'Presentación',
+  contractsent: 'Contrato enviado',
+  decisionmakerboughtin: 'En decisión',
+  closedwon: 'Cerrado ganado',
+  closedlost: 'Cerrado perdido',
 };
 
 // HubSpot object type IDs
@@ -146,6 +216,51 @@ export interface CotizacionUpdateData {
   amount?: string | number;
   description?: string;
   notes?: string;
+  
+  // Operational fields (Phase 4 - Admin Panel)
+  tipodeproceso?: TipoDeProceso;
+  estadodelsuplidor?: EstadoDelSuplidor;
+  fechasolicituda_suplidor?: string; // YYYY-MM-DD
+  fecharespuestadel_suplidor?: string; // YYYY-MM-DD
+  estadodela_cotizacion?: EstadoOperativoCotizacion;
+  trial_solicitado?: boolean;
+  resultadodela_cotizacion?: ResultadoDeCotizacion;
+}
+
+// Full cotizacion with all fields (for admin panel display)
+export interface Cotizacion extends HubSpotObject {
+  properties: {
+    dealname?: string;
+    amount?: string;
+    description?: string;
+    estado_cotizacion?: EstadoCotizacion;
+    fecha_envio_cotizacion?: string;
+    producto_cotizado?: ProductoCotizado;
+    producto_nombre_original?: string;
+    incoterm?: Incoterm;
+    tipoclienteoperacion?: TipoClienteOperacion;
+    puerto_salida?: string;
+    mercado_origen?: string;
+    pipeline?: string;
+    dealstage?: string;
+    createdate?: string;
+    updatedate?: string;
+    
+    // Operational fields (Phase 4) - Using HubSpot actual property names
+    tipo_de_proceso?: TipoDeProceso;
+    estado_del_suplidor?: EstadoDelSuplidor;
+    fecha_solicitud_a_suplidor?: string;
+    fecha_respuesta_del_suplidor?: string;
+    estado_de_la_cotizacion?: EstadoOperativoCotizacion;
+    trial_solicitado?: string; // HubSpot stores booleans as strings
+    resultado_de_la_cotizacion?: ResultadoDeCotizacion;
+    
+    // Associations
+    associatedcompanyId?: string;
+    associatedcontactId?: string;
+    
+    [key: string]: string | undefined;
+  };
 }
 
 export interface ActivityNote {

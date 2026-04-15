@@ -251,6 +251,14 @@ Use the included `Caddyfile` for reverse proxy setup on port 81:
 | `/api/cotizaciones/[id]` | GET | Get cotización details by ID |
 | `/api/cotizaciones/[id]/estado` | PATCH | Transition cotización state with validations, auto-actions (emails, tasks, notes) |
 
+### Admin Panel API (Phase 4)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/admin/cotizaciones` | GET | List cotizaciones with advanced filters (estado_suplidor, estado_cotizacion, resultado, trial, tipo_proceso, date ranges) |
+| `/api/admin/cotizaciones` | PATCH | Update operational fields with validation and business rules |
+| `/api/admin/cotizaciones/[id]` | GET | Get full cotizacion details including operational fields |
+
 ## 🤖 AI Chat — How It Works
 
 ### Sales Agent Flow
@@ -411,60 +419,72 @@ This project is proprietary software for J Huge International.
 
 ---
 
-## 🚀 Next Steps: Operations Dashboard (Phase 4)
+## 🚀 Phase 4: Admin Panel - COMPLETE ✅
 
-### Vision
+### Overview
 
-Build an **Operations Command Center** (NOT a HubSpot duplicate) that provides:
+Built a complete **Operations Command Center** for backoffice teams to manage the supplier workflow. The panel provides a streamlined interface for managing the 7 operational fields synced with HubSpot.
 
-1. **Today's Focus** - What requires attention NOW
-   - Overdue follow-ups
-   - Quotes stuck in a state (>24h)
-   - Quotes ready to advance
+### Features Implemented
 
-2. **Quick Actions** - One-click operations
-   - Change quote state
-   - Send manual email to client
-   - Add internal note
-   - Assign to different salesperson
+1. **Cotizaciones Table** (`/admin/cotizaciones`)
+   - Full table with all operational columns
+   - Inline editing (dropdowns, datepickers, toggles)
+   - 7 preconfigured views (Pendientes, Esperando valores, Listas, Enviadas, Trials, Perdidas, Convertidas)
+   - Advanced multi-select filters
+   - Color-coded badges by state
+   - Pagination
 
-3. **Smart Alerts** - Automated notifications
-   - 48h follow-up reminders
-   - Delay alerts (>24h in same state)
-   - Quote won/lost notifications
+2. **Backend API**
+   - GET with advanced filters (estado_suplidor, estado_cotizacion, resultado, trial, tipo_proceso, date ranges)
+   - PATCH with validation and 4 business rules
+   - Change logging for audit trail
+   - Warnings/suggestions on state changes
 
-4. **Business Analytics** - Insights HubSpot Free doesn't provide
-   - Conversion rate by product
-   - Average time per state
-   - Top clients by volume
-   - Monthly trends
+3. **7 Operational Fields** (synced with HubSpot)
+   - `tipo_de_proceso` - Cotización / Oportunidad Trial
+   - `estado_del_suplidor` - Supplier progress tracking
+   - `fecha_solicitud_a_suplidor` - When info was requested from supplier
+   - `fecha_respuesta_del_suplidor` - When supplier responded
+   - `estado_de_la_cotizacion` - Internal operational state
+   - `trial_solicitado` - Trial requested flag
+   - `resultado_de_la_cotizacion` - Final result
 
-### Architecture Principle
+### Business Rules
+
+| Rule | Action |
+|------|--------|
+| If `estado_suplidor = esperando_valores` → date must exist | ⚠️ Warning |
+| If `estado_suplidor = valores_recibidos` → response date must exist | ⚠️ Warning |
+| If `trial_solicitado = true` → suggest `tipo_proceso = oportunidad_trial` | 💡 Suggestion |
+| If `resultado = perdida` → soft lock warning | 🔒 Warning |
+
+### Architecture
 
 ```
-Operations Dashboard (Your App)
-  • Command center
-  • Smart alerts
-  • Quick actions
-  • Business analytics
-        ↓ reads/writes
-HubSpot (CRM / System of Record)
-  • Contact storage
-  • Company storage
-  • Quote records
+Admin Panel (/admin/cotizaciones)
+  • Inline editing
+  • Preconfigured views
+  • Advanced filters
+  • Color badges
+        ↓ sync
+HubSpot CRM (Object 0-3 - Cotizaciones)
+  • 7 operational fields
   • Historical tracking
+  • System of record
 ```
 
-**Your dashboard = Pilot's control panel**  
-**HubSpot = Database**
+### Access
+
+- Dashboard: `http://localhost:3000/admin`
+- Cotizaciones: `http://localhost:3000/admin/cotizaciones`
 
 ### Documentation
 
 See these files for details:
-- `IMPLEMENTATION_COMPLETE.md` - Phases 1-3 summary
-- `SETUP_COMPLETE_GUIDE.md` - Complete setup guide (Spanish)
-- `src/lib/hubspot/docs/business_rules.md` - Business rules
-- `src/lib/hubspot/docs/sync_actions.md` - Available actions
+- `PHASE4_IMPLEMENTATION_COMPLETE.md` - Complete Phase 4 implementation docs
+- `PHASE4_ADMIN_PANEL_PLAN.md` - Original plan and requirements
+- `scripts/check-hubspot-properties.ts` - Script to verify HubSpot field names
 
 ---
 
