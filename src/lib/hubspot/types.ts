@@ -156,6 +156,8 @@ export const ASSOCIATION_TYPES = {
   DEAL_TO_CONTACT: '4', // Deal -> Contact association
   COMPANY_TO_DEAL: '5', // Company -> Deal association
   DEAL_TO_COMPANY: '6', // Deal -> Company association
+  /** Note -> Cotización (custom object 0-3; same label as classic Deal in HubSpot) */
+  NOTE_TO_COTIZACION: '214',
 } as const;
 
 // ============================================================

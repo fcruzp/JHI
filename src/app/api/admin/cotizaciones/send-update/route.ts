@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EmailService } from '@/lib/email/service';
+import { HubSpotService } from '@/lib/hubspot/service';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,6 +32,25 @@ export async function POST(req: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
+    }
+
+    // 2. Persist the update as a note in HubSpot for chatbot context
+    try {
+      if (!id) {
+        // eslint-disable-next-line no-console
+        console.warn('[Admin API] No cotización id; skipping HubSpot note');
+      } else {
+        await HubSpotService.activities.createNote({
+          cotizacionId: id,
+          content: `[CORREO ADMIN]\n\n${comentario}`,
+        });
+        // eslint-disable-next-line no-console
+        console.log('[Admin API] Update persisted as note in HubSpot');
+      }
+    } catch (noteError) {
+      // eslint-disable-next-line no-console
+      console.error('[Admin API] Failed to persist note in HubSpot:', noteError);
+      // We don't fail the whole request because the email was already sent
     }
 
     return NextResponse.json({ success: true });

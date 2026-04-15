@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store';
@@ -13,6 +13,8 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
+
+const getChatStorageKey = (language: string) => `jhi-chat-history-${language}`;
 
 export function ChatWidget() {
   const { language, chatOpen, setChatOpen } = useAppStore();
@@ -38,10 +40,45 @@ export function ChatWidget() {
     }
   }, [chatOpen, initialized, t.chatWelcome]);
 
-  // Reset when language changes
+  // Load persisted chat when language changes
   useEffect(() => {
-    setInitialized(false);
+    if (typeof window === 'undefined') return;
+
+    const raw = window.localStorage.getItem(getChatStorageKey(language));
+    if (!raw) {
+      setMessages([]);
+      setInitialized(false);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as Message[];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setMessages(parsed);
+        setInitialized(true);
+      } else {
+        setMessages([]);
+        setInitialized(false);
+      }
+    } catch {
+      setMessages([]);
+      setInitialized(false);
+    }
   }, [language]);
+
+  // Persist chat history
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!initialized) return;
+
+    const key = getChatStorageKey(language);
+    if (messages.length === 0) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+
+    window.localStorage.setItem(key, JSON.stringify(messages));
+  }, [messages, language, initialized]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -110,6 +147,31 @@ export function ChatWidget() {
     }
   };
 
+  const handleClearChat = () => {
+    const confirmMessageByLanguage: Record<string, string> = {
+      es: '¿Seguro que deseas borrar esta conversación?',
+      en: 'Are you sure you want to clear this conversation?',
+      zh: '您确定要清除此对话吗？',
+    };
+    const confirmMessage =
+      confirmMessageByLanguage[language] || confirmMessageByLanguage.es;
+    const confirmed = window.confirm(confirmMessage);
+    if (!confirmed) return;
+
+    const welcomeMessage: Message = {
+      id: `welcome-${Date.now()}`,
+      role: 'assistant',
+      content: t.chatWelcome,
+    };
+
+    setMessages([welcomeMessage]);
+    setInitialized(true);
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(getChatStorageKey(language));
+    }
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -134,7 +196,7 @@ export function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 max-w-sm max-h-[70vh] sm:max-h-[32rem] bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 z-[9999] flex flex-col overflow-hidden"
+            className="fixed inset-x-0 bottom-0 h-[100dvh] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-auto w-full sm:w-96 sm:max-w-sm sm:max-h-[32rem] bg-white dark:bg-[#1a1a1a] rounded-none sm:rounded-2xl shadow-2xl border-0 sm:border border-gray-200 dark:border-white/10 z-[9999] flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/5 bg-gradient-to-r from-[#c9a84c]/5 to-transparent">
@@ -144,14 +206,26 @@ export function ChatWidget() {
                   JHI Assistant
                 </h3>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"
-                onClick={() => setChatOpen(false)}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"
+                  onClick={handleClearChat}
+                  title="Limpiar chat"
+                  aria-label="Limpiar chat"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full hover:bg-gray-100 dark:hover:bg-white/10"
+                  onClick={() => setChatOpen(false)}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
 
             {/* Messages */}

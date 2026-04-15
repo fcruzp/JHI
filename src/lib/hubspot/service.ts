@@ -949,12 +949,15 @@ export class ActivitiesService {
    * Create a note and associate it with a cotizacion
    */
   static async createNote(activity: ActivityNote): Promise<HubSpotObject> {
+    // HubSpot notes require hs_timestamp (epoch ms).
+    const timestampMs = String(Date.now());
     const note = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/notes`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({
         properties: {
           hs_note_body: activity.content,
+          hs_timestamp: timestampMs,
         },
       }),
     });
@@ -968,14 +971,73 @@ export class ActivitiesService {
     // Associate note with cotizacion
     if (activity.cotizacionId) {
       await this.associateObjects(
-        '0-12', // Notes object type
+        'notes',
         noteData.id,
         HUBSPOT_OBJECT_TYPES.COTIZACIONES,
-        activity.cotizacionId
+        activity.cotizacionId,
+        ASSOCIATION_TYPES.NOTE_TO_COTIZACION
       );
     }
 
     return noteData;
+  }
+
+  /**
+   * Get all notes associated with a cotizacion
+   */
+  static async getNotesByCotizacionId(cotizacionId: string): Promise<Array<{ body: string; createdAt: string }>> {
+    try {
+      // 1. Get associated note IDs
+      const assocRes = await fetch(
+        `${HUBSPOT_API_URL}/crm/v3/objects/${HUBSPOT_OBJECT_TYPES.COTIZACIONES}/${cotizacionId}/associations/notes`,
+        { headers: getHeaders() }
+      );
+
+      if (!assocRes.ok) {
+        if (assocRes.status === 404) return [];
+        await handleHubSpotError(assocRes, 'GetNoteAssociations');
+      }
+
+      const assocData = await assocRes.json();
+      const noteIds = assocData.results?.map((r: any) => r.id) || [];
+
+      if (noteIds.length === 0) return [];
+
+      // 2. Fetch note details (max 100 for safety)
+      const batchRes = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/notes/batch/read`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          properties: ['hs_note_body', 'hs_timestamp', 'createdate'],
+          inputs: noteIds.map((id: string) => ({ id })),
+        }),
+      });
+
+      if (!batchRes.ok) {
+        await handleHubSpotError(batchRes, 'BatchReadNotes');
+      }
+
+      const batchData = await batchRes.json();
+
+      // 3. Format and sort by date descending
+      return (batchData.results || [])
+        .map((n: HubSpotObject) => {
+          const props = n.properties || {};
+          const ts = props.hs_timestamp || props.createdate || '';
+          return {
+            body: (props.hs_note_body as string) || '',
+            createdAt: String(ts),
+          };
+        })
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+    } catch (error) {
+      console.error('[HubSpot Service] Error fetching notes:', error);
+      return [];
+    }
   }
 
   /**
@@ -1004,7 +1066,7 @@ export class ActivitiesService {
     // Associate task with cotizacion
     if (task.cotizacionId) {
       await this.associateObjects(
-        '0-7', // Tasks object type
+        'tasks',
         taskData.id,
         HUBSPOT_OBJECT_TYPES.COTIZACIONES,
         task.cotizacionId
@@ -1021,10 +1083,11 @@ export class ActivitiesService {
     fromObjectType: string,
     fromObjectId: string,
     toObjectType: string,
-    toObjectId: string
+    toObjectId: string,
+    associationTypeId: string = ASSOCIATION_TYPES.CONTACT_TO_DEAL
   ): Promise<void> {
     const response = await fetch(
-      `${HUBSPOT_API_URL}/crm/v3/objects/${fromObjectType}/${fromObjectId}/associations/${toObjectType}/${toObjectId}/${ASSOCIATION_TYPES.CONTACT_TO_DEAL}`,
+      `${HUBSPOT_API_URL}/crm/v3/objects/${fromObjectType}/${fromObjectId}/associations/${toObjectType}/${toObjectId}/${associationTypeId}`,
       {
         method: 'PUT',
         headers: getHeaders(),

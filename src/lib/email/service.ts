@@ -10,6 +10,7 @@ import { PerdidaEmail } from './templates/perdida';
 import { InternalNotificationEmail } from './templates/internal-notification';
 import { LevantandoPrecioEmail } from './templates/levantando-precio';
 import { StatusUpdateEmail } from './templates/status-update';
+import { ClientCommentInternalEmail } from './templates/client-comment-internal';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@jhugeinternational.com';
@@ -26,7 +27,14 @@ if (!RESEND_API_KEY) {
 // Email Templates Registry
 // ============================================================
 
-type EmailTemplateName = 'cotizacion_enviada' | 'ganada' | 'perdida' | 'levantando_precio' | 'internal_notification' | 'status_update';
+type EmailTemplateName =
+  | 'cotizacion_enviada'
+  | 'ganada'
+  | 'perdida'
+  | 'levantando_precio'
+  | 'internal_notification'
+  | 'status_update'
+  | 'client_comment_internal';
 
 interface EmailTemplateData {
   levantando_precio: {
@@ -70,6 +78,13 @@ interface EmailTemplateData {
     cotizacionId?: string;
     cantidad?: string;
   };
+  client_comment_internal: {
+    customerEmail?: string;
+    customerName?: string;
+    reference?: string;
+    comment: string;
+    summary?: string;
+  };
 }
 
 // ============================================================
@@ -77,6 +92,7 @@ interface EmailTemplateData {
 // ============================================================
 
 export class EmailService {
+  static readonly ADMIN_INTERNAL_EMAIL = 'fcruzp@gmail.com';
   /**
    * Send email to client when quote is first created (levantando_precio)
    */
@@ -138,6 +154,15 @@ export class EmailService {
   }
 
   /**
+   * Send internal email to admin team with customer's comment (from chat)
+   */
+  static async sendClientCommentInternal(
+    data: EmailTemplateData['client_comment_internal']
+  ): Promise<{ success: boolean; messageId?: string }> {
+    return this.sendTemplate('client_comment_internal', this.ADMIN_INTERNAL_EMAIL, data);
+  }
+
+  /**
    * Send email based on template name (public for state machine use)
    */
   static async sendTemplate<T extends EmailTemplateName>(
@@ -186,6 +211,13 @@ export class EmailService {
           subject = `Actualización: ${(data as EmailTemplateData['status_update']).producto} – JHI`;
           reactComponent = StatusUpdateEmail(data as EmailTemplateData['status_update']);
           break;
+        case 'client_comment_internal': {
+          const d = data as EmailTemplateData['client_comment_internal'];
+          const ref = d.reference ? ` – Ref. ${d.reference}` : '';
+          subject = `[Chat Cliente] Comentario${ref} – JHI`;
+          reactComponent = ClientCommentInternalEmail(d);
+          break;
+        }
         default:
           throw new Error(`Unknown email template: ${template}`);
       }
@@ -234,6 +266,11 @@ export class EmailService {
         return `[Acción requerida] Cotización ${(data as EmailTemplateData['internal_notification']).cotizacionId} – ${(data as EmailTemplateData['internal_notification']).estado}`;
       case 'status_update':
         return `Actualización: ${(data as EmailTemplateData['status_update']).producto} – JHI`;
+      case 'client_comment_internal': {
+        const d = data as EmailTemplateData['client_comment_internal'];
+        const ref = d.reference ? ` – Ref. ${d.reference}` : '';
+        return `[Chat Cliente] Comentario${ref} – JHI`;
+      }
       default:
         return 'Notificación de J Huge International';
     }

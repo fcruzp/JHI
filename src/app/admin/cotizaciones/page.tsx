@@ -63,6 +63,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -103,6 +104,11 @@ interface MetricsData {
   perdidas: number;
   convertidasTrial: number;
   ganadas: number;
+}
+
+interface CotizacionNote {
+  body: string;
+  createdAt: string;
 }
 
 // ============================================================
@@ -217,6 +223,11 @@ export default function AdminCotizacionesPage() {
   const [updateComment, setUpdateComment] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState<any | null>(null);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [notes, setNotes] = useState<CotizacionNote[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [newNote, setNewNote] = useState("");
+  const [addingNote, setAddingNote] = useState(false);
 
   // Debounce search query
   const handleProcessAI = async (action: string) => {
@@ -443,6 +454,65 @@ export default function AdminCotizacionesPage() {
 
   const handleOpenDetail = (cotizacion: any) => {
     setSelectedDetail(cotizacion);
+  };
+
+  const loadCotizacionNotes = async (cotizacionId: string) => {
+    setNotesLoading(true);
+    try {
+      const response = await fetch(`/api/admin/cotizaciones/${cotizacionId}/notes`);
+      const data = await response.json();
+      if (data.success) {
+        setNotes(data.data || []);
+      } else {
+        toast.error(data.error || "No se pudieron cargar las notas");
+      }
+    } catch (error) {
+      console.error("Error loading notes:", error);
+      toast.error("Error de red al cargar notas");
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  const handleOpenNotesModal = async () => {
+    if (!selectedDetail?.id) {
+      toast.error("No hay cotización seleccionada");
+      return;
+    }
+
+    setIsNotesModalOpen(true);
+    await loadCotizacionNotes(selectedDetail.id);
+  };
+
+  const handleAddNote = async () => {
+    if (!selectedDetail?.id) return;
+    if (!newNote.trim()) {
+      toast.error("Escribe una nota antes de guardar");
+      return;
+    }
+
+    setAddingNote(true);
+    try {
+      const response = await fetch(`/api/admin/cotizaciones/${selectedDetail.id}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newNote }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setNotes(data.data || []);
+        setNewNote("");
+        toast.success("Nota agregada correctamente");
+      } else {
+        toast.error(data.error || "No se pudo agregar la nota");
+      }
+    } catch (error) {
+      console.error("Error adding note:", error);
+      toast.error("Error de red al guardar la nota");
+    } finally {
+      setAddingNote(false);
+    }
   };
 
   const handleBatchDelete = async () => {
@@ -1439,6 +1509,9 @@ export default function AdminCotizacionesPage() {
             <DialogTitle className="text-xl">
               Detalle de Cotización: {selectedDetail?.properties.dealname}
             </DialogTitle>
+            <DialogDescription>
+              Revisa la información completa y gestiona comunicaciones o notas de seguimiento.
+            </DialogDescription>
           </DialogHeader>
           
           {selectedDetail && (
@@ -1540,8 +1613,11 @@ export default function AdminCotizacionesPage() {
                 )}
               </div>
               
-              <div className="md:col-span-2 pt-4 border-t flex justify-end">
-                <Button 
+              <div className="md:col-span-2 pt-4 border-t flex justify-end gap-2">
+                <Button variant="outline" onClick={handleOpenNotesModal}>
+                  Ver Notas
+                </Button>
+                <Button
                   onClick={() => setIsUpdateModalOpen(true)}
                   className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
                 >
@@ -1554,6 +1630,57 @@ export default function AdminCotizacionesPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Modal de Notas */}
+      <Dialog open={isNotesModalOpen} onOpenChange={setIsNotesModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Notas de la Cotización {selectedDetail?.id ? `(Ref. ${selectedDetail.id})` : ""}
+            </DialogTitle>
+            <DialogDescription>
+              Visualiza el historial de notas asociado y agrega una nueva nota interna.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Nueva nota</label>
+              <Textarea
+                placeholder="Escribe una nota para el equipo..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                className="min-h-[110px]"
+              />
+              <div className="flex justify-end">
+                <Button onClick={handleAddNote} disabled={addingNote || !newNote.trim()}>
+                  {addingNote ? "Guardando..." : "Agregar Nota"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">Historial</h4>
+              {notesLoading ? (
+                <p className="text-sm text-gray-500">Cargando notas...</p>
+              ) : notes.length === 0 ? (
+                <p className="text-sm text-gray-500">No hay notas registradas para esta cotización.</p>
+              ) : (
+                <div className="space-y-3">
+                  {notes.map((note, idx) => (
+                    <div key={`${note.createdAt}-${idx}`} className="rounded-md border p-3 bg-gray-50 dark:bg-gray-900">
+                      <p className="text-xs text-gray-500 mb-1">
+                        {note.createdAt ? new Date(note.createdAt).toLocaleString("es-ES") : "Sin fecha"}
+                      </p>
+                      <p className="text-sm whitespace-pre-wrap">{note.body || "-"}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal de Comunicación con IA */}
       <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
         <DialogContent className="max-w-2xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-2xl">
@@ -1562,9 +1689,9 @@ export default function AdminCotizacionesPage() {
               <Sparkles className="h-5 w-5 text-blue-600" />
               Comunicación con el Cliente
             </DialogTitle>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <DialogDescription className="text-sm text-slate-500 dark:text-slate-400">
               Informa al cliente sobre el estatus actual de su cotización. Usa la IA para perfeccionar tu mensaje.
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           {selectedDetail && (
