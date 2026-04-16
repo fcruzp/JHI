@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAppStore } from '@/lib/store';
 import { getTranslation } from '@/lib/i18n';
 import { StaggerContainer, StaggerItem } from './ScrollAnimations';
@@ -14,7 +15,7 @@ interface Commodity {
 const commodities: Commodity[] = [
   { key: 'Pork', image: '/images/commodities/pork.jpg', href: '/commodities/pork' },
   { key: 'Beef', image: '/images/commodities/beef.jpg', href: '/commodities/beef' },
-  { key: 'CanadianBeef', image: '/images/commodities/canadian-beef.jpg' },
+  { key: 'CanadianBeef', image: '/images/commodities/canadian-beef.jpg', href: '/commodities/canadian-beef' },
   { key: 'Veal', image: '/images/commodities/veal.jpg' },
   { key: 'Lamb', image: '/images/commodities/lamb.jpg' },
   { key: 'Poultry', image: '/images/commodities/poultry.jpg' },
@@ -51,10 +52,13 @@ export function CommoditiesSection() {
               <div className="group relative overflow-hidden rounded-2xl border transition-all duration-500 hover:shadow-xl hover:shadow-[#c9a84c]/5 hover:-translate-y-1 border-gray-100 dark:border-white/5 bg-white dark:bg-[#1a1a1a] hover:border-[#c9a84c]/30 dark:hover:border-[#c9a84c]/20">
                 {/* Image */}
                 <div className="relative h-48 sm:h-56 overflow-hidden">
-                  <img
+                  <Image
                     src={image}
                     alt={t[`commodity${key}Name` as keyof typeof t]}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    priority={commodities.indexOf(commodities.find(c => c.key === key)!) < 3}
                   />
                   {/* Overlay on hover */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

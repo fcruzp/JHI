@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import { Footer } from '@/components/jhi/Footer';
 import { ChatWidget } from '@/components/jhi/ChatWidget';
@@ -57,11 +58,13 @@ export default async function PorkCommoditiesPage() {
                   className="group relative overflow-hidden rounded-2xl border transition-all duration-500 hover:shadow-xl hover:shadow-[#c9a84c]/5 hover:-translate-y-1 border-gray-100 dark:border-white/5 bg-white dark:bg-[#1a1a1a] hover:border-[#c9a84c]/30 dark:hover:border-[#c9a84c]/20"
                 >
                   <div className="relative h-56 overflow-hidden bg-white">
-                    <img
+                    <Image
                       src={`/images/pork/${encodeURIComponent(product.filename)}`}
                       alt={product.name}
-                      className="w-full h-full object-contain p-2 transition-transform duration-700 group-hover:scale-105"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-contain p-2 transition-transform duration-700 group-hover:scale-105"
+                      priority={product.id <= 3}
                     />
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#c9a84c] via-[#e2c66d] to-[#c9a84c] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                   </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { Shield, Zap, Globe } from 'lucide-react';
+import Image from 'next/image';
 import { useAppStore } from '@/lib/store';
 import { getTranslation } from '@/lib/i18n';
 import { ScrollAnimation } from './ScrollAnimations';
@@ -24,11 +25,17 @@ export function AboutSection() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Image side */}
           <ScrollAnimation direction="left" className="relative">
-            <div className="relative overflow-hidden rounded-2xl">
-              <img
+            <div 
+              className="relative overflow-hidden rounded-2xl h-[300px] sm:h-[400px] lg:h-[500px]"
+              style={{ minHeight: '300px' }}
+            >
+              <Image
                 src="/images/about.png"
                 alt="J Huge International - About"
-                className="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+                priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               {/* Gold accent border */}

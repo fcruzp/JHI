@@ -2,6 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import { ThemeImage } from './ThemeImage';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,16 +54,14 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="mb-8 sm:mb-12"
         >
-          <img
-            src="/images/logo-light.png"
-            alt="J Huge International"
-            className="h-[4.5rem] sm:h-24 md:h-[8rem] mx-auto rounded-2xl block dark:hidden"
-          />
-          <img
-            src="/images/logo-dark.png"
-            alt="J Huge International"
-            className="h-[4.5rem] sm:h-24 md:h-[8rem] mx-auto rounded-2xl hidden dark:block"
-          />
+          <div className="relative h-[4.5rem] sm:h-24 md:h-[8rem] aspect-square mx-auto rounded-2xl border-2 border-[#c9a84c]/60 bg-black/40 backdrop-blur-sm p-2 shadow-[0_0_15px_rgba(201,168,76,0.1)] overflow-hidden">
+            <ThemeImage
+              lightSrc="/images/logo-light.png"
+              darkSrc="/images/logo-dark.png"
+              alt="J Huge International"
+              priority
+            />
+          </div>
         </motion.div>
 
         {/* Tagline */}

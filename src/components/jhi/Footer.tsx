@@ -1,4 +1,5 @@
 import { Linkedin, Twitter } from 'lucide-react';
+import Image from 'next/image';
 import { getTranslationServer } from '@/lib/i18n-server';
 import { cookies } from 'next/headers';
 
@@ -24,16 +25,22 @@ export async function Footer() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company info */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <img
-              src="/images/logo-light.png"
-              alt="J Huge International"
-              className="h-8 mb-4 block dark:hidden"
-            />
-            <img
-              src="/images/logo-dark.png"
-              alt="J Huge International"
-              className="h-8 mb-4 hidden dark:block"
-            />
+            <div className="relative h-11 aspect-square mb-6 block dark:hidden rounded-lg border-2 border-[#c9a84c]/50 bg-black/5 p-1 shadow-sm overflow-hidden">
+              <Image
+                src="/images/logo-light.png"
+                alt="J Huge International"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div className="relative h-11 aspect-square mb-6 hidden dark:block rounded-lg border-2 border-[#c9a84c]/50 bg-white/5 p-1 shadow-sm overflow-hidden">
+              <Image
+                src="/images/logo-dark.png"
+                alt="J Huge International"
+                fill
+                className="object-contain"
+              />
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {t.heroSubtitle}
             </p>
