@@ -14,7 +14,7 @@ type PorkProduct = {
 };
 
 async function getPorkProducts(): Promise<PorkProduct[]> {
-  const filePath = path.join(process.cwd(), 'EXAMPLE', 'PORK', 'products.json');
+  const filePath = path.join(process.cwd(), 'src', 'data', 'commodities', 'pork-products.json');
   const raw = await fs.readFile(filePath, 'utf-8');
   return JSON.parse(raw) as PorkProduct[];
 }

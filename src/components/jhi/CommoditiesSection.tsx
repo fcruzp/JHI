@@ -5,7 +5,13 @@ import { useAppStore } from '@/lib/store';
 import { getTranslation } from '@/lib/i18n';
 import { StaggerContainer, StaggerItem } from './ScrollAnimations';
 
-const commodities = [
+interface Commodity {
+  key: string;
+  image: string;
+  href?: string;
+}
+
+const commodities: Commodity[] = [
   { key: 'Pork', image: '/images/commodities/pork.jpg', href: '/commodities/pork' },
   { key: 'Beef', image: '/images/commodities/beef.jpg', href: '/commodities/beef' },
   { key: 'CanadianBeef', image: '/images/commodities/canadian-beef.jpg' },
@@ -15,7 +21,7 @@ const commodities = [
   { key: 'Fish', image: '/images/commodities/fish.jpg' },
   { key: 'Dairy', image: '/images/commodities/dairy.jpg' },
   { key: 'GrainsOthers', image: '/images/commodities/grains-others.jpg' },
-] as const;
+];
 
 export function CommoditiesSection() {
   const { language } = useAppStore();

@@ -1,0 +1,146 @@
+[
+  {
+    "id": 1,
+    "filename": "1.RibPrimal.jpeg",
+    "name": "Rib Primal",
+    "description": "Premium rib primal cut with excellent marbling and bone structure. Perfect for high-end steaks, roasts, or specialty cuts. Delivers exceptional flavor and tenderness."
+  },
+  {
+    "id": 2,
+    "filename": "2.RibBladeMeat.jpeg",
+    "name": "Rib Blade Meat",
+    "description": "Tender blade meat from the rib section. Ideal for steaks, roasting, or grinding. Offers great flavor with good marbling throughout."
+  },
+  {
+    "id": 3,
+    "filename": "3.RoastReadyShortCut.jpeg",
+    "name": "Roast Ready Short Cut",
+    "description": "Pre-trimmed roast cut ready for immediate preparation. Perfect for oven roasting or slow cooking. Consistent quality and excellent presentation."
+  },
+  {
+    "id": 4,
+    "filename": "4.Ribeye.jpeg",
+    "name": "Ribeye",
+    "description": "Premium ribeye steak with excellent marbling and flavor. One of the most sought-after cuts. Perfect for grilling or pan-searing to perfection."
+  },
+  {
+    "id": 5,
+    "filename": "5.ChuckShoulderClod.jpeg",
+    "name": "Chuck Shoulder Clod",
+    "description": "Lean shoulder cut from the chuck. Excellent for roasting, grinding, or stewing. Versatile cut with good flavor and minimal waste."
+  },
+  {
+    "id": 6,
+    "filename": "6.ChuckSquareCut.jpeg",
+    "name": "Chuck Square Cut",
+    "description": "Square-cut chuck section. Perfect for braising, stewing, or grinding. Great for ground beef applications and slow-cooked dishes."
+  },
+  {
+    "id": 7,
+    "filename": "7.BrisketPointCutBoneless.jpeg",
+    "name": "Brisket Point Cut Boneless",
+    "description": "Boneless brisket point cut. Ideal for smoking, braising, or slow roasting. Rich marbling creates tender, flavorful results when cooked low and slow."
+  },
+  {
+    "id": 8,
+    "filename": "8.InsideSkirt.jpeg",
+    "name": "Inside Skirt",
+    "description": "Tender inside skirt steak. Excellent for grilling or pan-searing. Flavorful cut with great texture when sliced against the grain."
+  },
+  {
+    "id": 9,
+    "filename": "9.Plate,OutsideSkirt.jpeg",
+    "name": "Plate Outside Skirt",
+    "description": "Flavorful outside skirt from the plate section. Perfect for grilling, fajitas, or stir-fry. Tender when properly cooked and sliced."
+  },
+  {
+    "id": 10,
+    "filename": "10.ShortRibs.jpeg",
+    "name": "Short Ribs",
+    "description": "Meaty short ribs with excellent bone-to-meat ratio. Perfect for braising, smoking, or slow roasting. Creates rich, flavorful dishes."
+  },
+  {
+    "id": 11,
+    "filename": "11.ChuckShortRib.jpeg",
+    "name": "Chuck Short Rib",
+    "description": "Short rib cut from the chuck section. Ideal for braising or slow cooking. Tender meat with great flavor from the bone."
+  },
+  {
+    "id": 12,
+    "filename": "12.StriploinBoneless.jpeg",
+    "name": "Striploin Boneless",
+    "description": "Premium boneless striploin steak. Lean with excellent tenderness. Perfect for grilling, pan-searing, or roasting. Consistent quality."
+  },
+  {
+    "id": 13,
+    "filename": "13.Tenderloin.jpeg",
+    "name": "Tenderloin",
+    "description": "The most tender cut of beef. Premium quality for special occasions. Excellent for grilling, roasting, or pan-searing. Cooks quickly and stays juicy."
+  },
+  {
+    "id": 14,
+    "filename": "14.TenderloinSideMuscle.jpeg",
+    "name": "Tenderloin Side Muscle",
+    "description": "Side muscle from the tenderloin. Tender and lean. Perfect for premium steaks or specialty preparations. Consistent quality throughout."
+  },
+  {
+    "id": 15,
+    "filename": "15.ButtDefatted.jpeg",
+    "name": "Butt Defatted",
+    "description": "Lean butt cut with excess fat removed. Ideal for roasting or grinding. Great for health-conscious preparations while maintaining flavor."
+  },
+  {
+    "id": 16,
+    "filename": "16.TenderloinButt.jpeg",
+    "name": "Tenderloin Butt",
+    "description": "Tender butt section from the tenderloin. Premium cut with excellent tenderness. Perfect for steaks or specialty roasts."
+  },
+  {
+    "id": 17,
+    "filename": "17.ChuckSquareCut.jpeg",
+    "name": "Chuck Square Cut",
+    "description": "Square-cut chuck section. Versatile for braising, stewing, or grinding. Great for ground beef and slow-cooked preparations."
+  },
+  {
+    "id": 18,
+    "filename": "18.FlankSteak.jpeg",
+    "name": "Flank Steak",
+    "description": "Lean, flavorful flank steak. Perfect for grilling, fajitas, or stir-fry. Tender when sliced against the grain. Great for marinating."
+  },
+  {
+    "id": 19,
+    "filename": "19.Aorta.jpeg",
+    "name": "Aorta",
+    "description": "Beef aorta. Unique organ meat with distinct texture. Used in specialty cuisines and traditional dishes. Requires proper preparation."
+  },
+  {
+    "id": 20,
+    "filename": "20.DiaphragmMembrane.jpeg",
+    "name": "Diaphragm Membrane",
+    "description": "Diaphragm muscle membrane. Specialty cut with unique flavor profile. Excellent for braising or specialty culinary applications."
+  },
+  {
+    "id": 21,
+    "filename": "21.Hearts.jpeg",
+    "name": "Hearts",
+    "description": "Beef hearts. Lean, flavorful organ meat. Perfect for grinding into sausages, stewing, or specialty preparations. Tender when cooked properly."
+  },
+  {
+    "id": 22,
+    "filename": "22.Kidneys.jpeg",
+    "name": "Kidneys",
+    "description": "Beef kidneys. Delicate organ meat with unique flavor. Excellent for stews, pâtés, or traditional kidney dishes. Requires proper preparation."
+  },
+  {
+    "id": 23,
+    "filename": "23.Liver..jpeg",
+    "name": "Liver",
+    "description": "Beef liver. Nutrient-dense organ meat with rich flavor. Excellent for pâtés, sautéing, or traditional liver dishes. Premium quality."
+  },
+  {
+    "id": 24,
+    "filename": "24.Tongue.jpeg",
+    "name": "Tongue",
+    "description": "Beef tongue. Delicacy in many cuisines. Tender when properly prepared. Excellent for braising, boiling, or specialty dishes."
+  }
+]
