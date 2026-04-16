@@ -18,7 +18,8 @@ Be courteous, professional, confident, and enterprise-appropriate.
 IMPORTANT RULES:
 1. You only handle new quote requests or quote status inquiries.
 2. For a NEW QUOTE, collect ALL of the following before closing the conversation:
-   - Commodity type
+   - Commodity category
+   - Product (specific commodity item)
    - Approximate quantity (in Metric Tons)
    - Country of origin
    - Destination country
@@ -28,7 +29,7 @@ IMPORTANT RULES:
 4. When you have ALL the info for a NEW QUOTE, end with EXACTLY this phrase:
    "Perfect! I've completed our conversation. I'll send you the quote shortly."
    Then return a JSON block at the very end wrapped in \`\`\`json ... \`\`\`:
-   {"action":"create_quote","data":{"email":"...","name":"...","commodity":"...","quantity":500,"origin":"Brazil","destination":"Spain","incoterms":"CIF","notes":"..."}}
+   {"action":"create_quote","data":{"email":"...","name":"...","commodityCategory":"PORK","commodityProduct":"Tenderloin","commodity":"PORK: Tenderloin","quantity":500,"origin":"Brazil","destination":"Spain","incoterms":"CIF","notes":"..."}}
 5. For QUOTE STATUS checks, once you have the email or reference, say:
    "Let me check the status for you right away."
    Then return a JSON block at the very end wrapped in \`\`\`json ... \`\`\`:
@@ -45,7 +46,8 @@ Sé cortés, profesional, confiado y con tono enterprise.
 REGLAS IMPORTANTES:
 1. Solo atiendes solicitudes de cotización o consultas de estatus de cotización.
 2. Para una NUEVA COTIZACIÓN, recopila TODA esta información antes de terminar:
-   - Tipo de commodity
+   - Categoría del commodity
+   - Producto específico (commodity)
    - Cantidad aproximada (en Toneladas Métricas - MT)
    - País de origen
    - País de destino
@@ -62,7 +64,7 @@ REGLAS IMPORTANTES:
 4. Cuando tengas TODA la info de una NUEVA COTIZACIÓN, termina EXACTAMENTE con esta frase:
    "¡Perfecto! Ya terminé la conversación. Te enviaré la cotización pronto."
    Luego devuelve un bloque JSON al final dentro de \`\`\`json ... \`\`\`:
-   {"action":"create_quote","data":{"email":"...","name":"...","commodity":"...","quantity":500,"origin":"Brasil","destination":"España","incoterms":"CIF","notes":"..."}}
+   {"action":"create_quote","data":{"email":"...","name":"...","commodityCategory":"PORK","commodityProduct":"Tenderloin","commodity":"PORK: Tenderloin","quantity":500,"origin":"Brasil","destination":"España","incoterms":"CIF","notes":"..."}}
 
 5. Herramientas opcionales de seguimiento (comentarios del cliente):
    - Si el cliente desea que su comentario llegue al equipo o tú lo consideras útil, sugiere estas 2 opciones y pídele elegir UNA:
@@ -87,7 +89,8 @@ Nunca menciones que eres una IA. Despídete siempre como "Equipo JHI".`,
 重要规则：
 1. 您只处理新报价请求或报价状态查询。
 2. 对于新报价，在结束对话前必须收集以下所有信息：
-   - 商品类型
+   - 商品类别
+   - 具体商品（产品）
    - 大约数量（公吨）
    - 原产国
    - 目的的国家
@@ -97,7 +100,7 @@ Nunca menciones que eres una IA. Despídete siempre como "Equipo JHI".`,
 4. 对于新报价，收集完所有必要信息后，用以下确切短语结束对话：
    "完美！我们的对话已完成。我将尽快向您发送报价。"
    然后在回复末尾返回一个结构化的JSON块，用\`\`\`json ... \`\`\`包裹：
-   {"action":"create_quote","data":{"email":"...","name":"...","commodity":"...","quantity":500,"origin":"巴西","destination":"西班牙","incoterms":"CIF","notes":"..."}}
+   {"action":"create_quote","data":{"email":"...","name":"...","commodityCategory":"PORK","commodityProduct":"Tenderloin","commodity":"PORK: Tenderloin","quantity":500,"origin":"巴西","destination":"西班牙","incoterms":"CIF","notes":"..."}}
 5. 对于状态查询，一旦获得电子邮件或参考编号，请说：
    "让我立即为您查看报价状态。"
    然后在回复末尾返回一个结构化的JSON块，用\`\`\`json ... \`\`\`包裹：
@@ -328,7 +331,11 @@ export async function POST(request: NextRequest) {
       console.log('Detected action JSON:', JSON.stringify(actionData));
 
       if (actionData.action === 'create_quote' && actionData.data) {
-        const { email, name, commodity, quantity, origin, destination, incoterms, notes } = actionData.data;
+        const { email, name, commodity, commodityCategory, commodityProduct, quantity, origin, destination, incoterms, notes } = actionData.data;
+        const commodityDisplay =
+          commodityCategory && commodityProduct
+            ? `${commodityCategory}: ${commodityProduct}`
+            : commodity;
 
         // Normalize enum values to match HubSpot options (lowercase, no accents)
         const normalizeIncoterm = (val: string): Incoterm => {
@@ -343,7 +350,18 @@ export async function POST(request: NextRequest) {
         const normalizeProducto = (val: string): ProductoCotizado => {
           const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
           if (lower.includes('azucar') || lower.includes('sugar')) return 'azucar';
-          if (lower.includes('chicken') || lower.includes('paw')) return 'chicken_paws';
+          if (
+            lower.includes('chicken') ||
+            lower.includes('paw') ||
+            lower.includes('meat') ||
+            lower.includes('carne') ||
+            lower.includes('pork') ||
+            lower.includes('cerdo') ||
+            lower.includes('beef') ||
+            lower.includes('res')
+          ) {
+            return 'chicken_paws';
+          }
           if (lower.includes('grano') || lower.includes('grain')) return 'granos';
           if (lower.includes('cafe') || lower.includes('coffee')) return 'cafe';
           if (lower.includes('aceite') || lower.includes('oil')) return 'aceites';
@@ -361,15 +379,15 @@ export async function POST(request: NextRequest) {
 
           // Map to new schema with normalized values
           const cotizacionData: CotizacionData = {
-            producto_cotizado: normalizeProducto(commodity || 'otro'),
-            producto_nombre_original: commodity, // Keep original name for dealname display
+            producto_cotizado: normalizeProducto(commodityDisplay || 'otro'),
+            producto_nombre_original: commodityDisplay || commodity, // Keep original name for dealname display
             incoterm: normalizeIncoterm(incoterms || 'otro'),
             tipo_cliente_operacion: 'cliente_directo',
             mercado_origen: origin,
             contactId: contact.id,
             contactEmail: email,
             amount: quantity,
-            description: `Origin: ${origin}\nDestination: ${destination}\nIncoterms: ${incoterms}\nContact: ${email}`,
+            description: `Origin: ${origin}\nDestination: ${destination}\nIncoterms: ${incoterms}\nCommodity: ${commodityDisplay}\nCategory: ${commodityCategory || 'N/A'}\nProduct: ${commodityProduct || 'N/A'}\nContact: ${email}\nNotes: ${notes || 'N/A'}`,
           };
 
           // Create cotizacion with contact association
@@ -379,7 +397,7 @@ export async function POST(request: NextRequest) {
           try {
             await EmailService.sendLevantandoPrecio(email, {
               nombre: name.split(' ')[0] || name,
-              producto: commodity,
+              producto: commodityDisplay || commodity,
               incoterm: incoterms,
               cantidad: String(quantity),
               cotizacionId: cotizacion.id,

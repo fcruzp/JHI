@@ -19,13 +19,96 @@ import { getTranslation } from '@/lib/i18n';
 import { ScrollAnimation } from './ScrollAnimations';
 
 export function ContactSection() {
-  const { language } = useAppStore();
+  const { language, pendingQuoteSelection, setPendingQuoteSelection } = useAppStore();
   const t = getTranslation(language);
+
+  const categoryOptions = [
+    { value: 'pork', label: t.commodityPorkName, quoteLabel: 'PORK' },
+    { value: 'beef', label: t.commodityBeefName, quoteLabel: 'BEEF' },
+    { value: 'canadian-beef', label: t.commodityCanadianBeefName, quoteLabel: 'CANADIAN BEEF' },
+    { value: 'veal', label: t.commodityVealName, quoteLabel: 'VEAL' },
+    { value: 'lamb', label: t.commodityLambName, quoteLabel: 'LAMB' },
+    { value: 'poultry', label: t.commodityPoultryName, quoteLabel: 'POULTRY' },
+    { value: 'fish', label: t.commodityFishName, quoteLabel: 'FISH' },
+    { value: 'dairy', label: t.commodityDairyName, quoteLabel: 'DAIRY' },
+    { value: 'grains-others', label: t.commodityGrainsOthersName, quoteLabel: 'GRAINS / OTHERS' },
+  ] as const;
+
+  const commodityCatalog = {
+    pork: [
+      'Hams Bone In Skin On',
+      'Hams Boneless Skinless',
+      'Ham Outside Muscle',
+      'Ham Inside Muscle',
+      'Ham Knuckle',
+      'Boneless Loin Short Cut',
+      'Boneless Loin Main Muscle',
+      'Tenderloin',
+      'Sirloin Boneless Buckeye',
+      'Belly Skinless Single Ribbed',
+      'Belly Boneless',
+      'Belly Skinless',
+      'Shoulder Picnic Bone In',
+      'Shoulder Picnic Boneless',
+      'Shoulder Butt Boneless A',
+      'Shoulder Butt Boneless B',
+      'Diaphragm Untrimmed',
+      'Tongues',
+      'Hind Foot',
+      'Front Foot',
+      'Hock',
+      'Jowl Skin On or Skinless',
+      'Liver',
+      'Heart',
+      'Kidneys',
+      'Back Fat',
+      'Belly Skin',
+      'Back Skin',
+      'Mixed Skin',
+      'Side Spareribs',
+      'Center Spareribs',
+      'Back Ribs',
+      'Riblet',
+    ],
+    beef: [
+      'Rib Primal',
+      'Rib Blade Meat',
+      'Roast Ready Short Cut',
+      'Ribeye',
+      'Chuck Shoulder Clod',
+      'Chuck Square Cut',
+      'Brisket Point Cut Boneless',
+      'Inside Skirt',
+      'Plate Outside Skirt',
+      'Short Ribs',
+      'Chuck Short Rib',
+      'Striploin Boneless',
+      'Tenderloin',
+      'Tenderloin Side Muscle',
+      'Butt Defatted',
+      'Tenderloin Butt',
+      'Flank Steak',
+      'Aorta',
+      'Diaphragm Membrane',
+      'Hearts',
+      'Kidneys',
+      'Liver',
+      'Tongue',
+    ],
+    'canadian-beef': [],
+    veal: [],
+    lamb: [],
+    poultry: [],
+    fish: [],
+    dairy: [],
+    'grains-others': [],
+  } as const;
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    commodity: '',
+    commodityCategory: '',
+    commodityProduct: '',
     quantity: '',
     origin: '',
     destination: '',
@@ -35,14 +118,58 @@ export function ContactSection() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const commodityOptions = [
-    t.commoditySugarName,
-    t.commodityMeatName,
-    t.commodityGrainsName,
-    t.commodityCoffeeName,
-    t.commodityOilName,
-    t.commodityDairyName,
-  ];
+  const commodityCategoryOptions = categoryOptions;
+  const commodityProductOptions = formData.commodityCategory
+    ? commodityCatalog[formData.commodityCategory as keyof typeof commodityCatalog] || []
+    : [];
+
+  React.useEffect(() => {
+    if (!pendingQuoteSelection) return;
+    const { commodityCategory, commodityProduct } = pendingQuoteSelection;
+    const productsForCategory = (commodityCatalog[commodityCategory as keyof typeof commodityCatalog] || []) as readonly string[];
+    const validCategory = commodityCategoryOptions.some((option) => option.value === commodityCategory);
+    if (!validCategory) return;
+    const matchedProduct = productsForCategory.find((product) => product === commodityProduct);
+    if (!matchedProduct) return;
+    setFormData((prev) => ({
+      ...prev,
+      commodityCategory,
+      commodityProduct: matchedProduct,
+    }));
+    setPendingQuoteSelection(null);
+  }, [pendingQuoteSelection, language, setPendingQuoteSelection]);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const categoryFromUrl = params.get('commodityCategory');
+    const rawProductFromUrl = params.get('commodityProduct');
+    const productFromUrl = rawProductFromUrl
+      ? decodeURIComponent(rawProductFromUrl).replace(/\+/g, ' ')
+      : null;
+    if (!categoryFromUrl || !productFromUrl) return;
+    const validCategory = commodityCategoryOptions.find((option) => option.value === categoryFromUrl);
+    if (!validCategory) return;
+    const productsForCategory = (commodityCatalog[categoryFromUrl as keyof typeof commodityCatalog] || []) as readonly string[];
+    const normalizeValue = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
+    const matchedProduct = productsForCategory.find(
+      (productOption) => normalizeValue(productOption) === normalizeValue(productFromUrl)
+    );
+    if (!matchedProduct) return;
+    // Two-step set to avoid race conditions with dependent Select rendering.
+    setFormData((prev) => ({
+      ...prev,
+      commodityCategory: categoryFromUrl,
+      commodityProduct: '',
+    }));
+    const raf = window.requestAnimationFrame(() => {
+      setFormData((prev) => ({
+        ...prev,
+        commodityCategory: categoryFromUrl,
+        commodityProduct: matchedProduct,
+      }));
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [language]);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -55,8 +182,11 @@ export function ContactSection() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = t.contactInvalidEmail;
     }
-    if (!formData.commodity) {
-      newErrors.commodity = t.contactRequired;
+    if (!formData.commodityCategory) {
+      newErrors.commodityCategory = t.contactRequired;
+    }
+    if (!formData.commodityProduct) {
+      newErrors.commodityProduct = t.contactRequired;
     }
     if (!formData.quantity.trim()) {
       newErrors.quantity = t.contactRequired;
@@ -89,14 +219,17 @@ export function ContactSection() {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          commodity: `${commodityCategoryOptions.find((option) => option.value === formData.commodityCategory)?.quoteLabel || formData.commodityCategory}: ${formData.commodityProduct}`,
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         toast.success(t.contactSuccess);
-        setFormData({ name: '', email: '', commodity: '', quantity: '', origin: '', destination: '', incoterms: '', message: '' });
+        setFormData({ name: '', email: '', commodityCategory: '', commodityProduct: '', quantity: '', origin: '', destination: '', incoterms: '', message: '' });
         setErrors({});
       } else {
         toast.error(data.error || t.contactError);
@@ -167,34 +300,78 @@ export function ContactSection() {
                 )}
               </div>
 
-              {/* Commodity */}
+              {/* Commodity Category */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t.contactCommodityCategory}
+                </Label>
+                <Select
+                  value={formData.commodityCategory}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, commodityCategory: value, commodityProduct: '' })
+                  }
+                >
+                  <SelectTrigger className={inputClass}>
+                    <SelectValue placeholder={t.contactCommodityCategoryPlaceholder} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-white/10">
+                    {commodityCategoryOptions.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-gray-900 dark:text-gray-300 focus:text-gray-900 dark:focus:text-white focus:bg-gray-50 dark:focus:bg-white/5"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.commodityCategory && (
+                  <p className="text-red-400 text-xs mt-1">{errors.commodityCategory}</p>
+                )}
+              </div>
+
+              {/* Commodity Product */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t.contactCommodity}
                 </Label>
                 <Select
-                  value={formData.commodity}
+                  value={formData.commodityProduct}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, commodity: value })
+                    setFormData({ ...formData, commodityProduct: value })
                   }
+                  disabled={!formData.commodityCategory}
                 >
                   <SelectTrigger className={inputClass}>
-                    <SelectValue placeholder={t.contactCommodityPlaceholder} />
+                    <SelectValue
+                      placeholder={formData.commodityCategory ? t.contactCommodityPlaceholder : t.contactCommoditySelectCategoryFirst}
+                    />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-white/10">
-                    {commodityOptions.map((option) => (
+                    {commodityProductOptions.length > 0 ? (
+                      commodityProductOptions.map((option) => (
+                        <SelectItem
+                          key={option}
+                          value={option}
+                          className="text-gray-900 dark:text-gray-300 focus:text-gray-900 dark:focus:text-white focus:bg-gray-50 dark:focus:bg-white/5"
+                        >
+                          {option}
+                        </SelectItem>
+                      ))
+                    ) : (
                       <SelectItem
-                        key={option}
-                        value={option}
+                        value="N/A"
+                        disabled
                         className="text-gray-900 dark:text-gray-300 focus:text-gray-900 dark:focus:text-white focus:bg-gray-50 dark:focus:bg-white/5"
                       >
-                        {option}
+                        {t.contactCommodityNoProducts}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
-                {errors.commodity && (
-                  <p className="text-red-400 text-xs mt-1">{errors.commodity}</p>
+                {errors.commodityProduct && (
+                  <p className="text-red-400 text-xs mt-1">{errors.commodityProduct}</p>
                 )}
               </div>
 

@@ -52,6 +52,22 @@ type TranslationKeys = {
   commodityOilDesc: string;
   commodityDairyName: string;
   commodityDairyDesc: string;
+  commodityPorkName: string;
+  commodityPorkDesc: string;
+  commodityBeefName: string;
+  commodityBeefDesc: string;
+  commodityCanadianBeefName: string;
+  commodityCanadianBeefDesc: string;
+  commodityVealName: string;
+  commodityVealDesc: string;
+  commodityLambName: string;
+  commodityLambDesc: string;
+  commodityPoultryName: string;
+  commodityPoultryDesc: string;
+  commodityFishName: string;
+  commodityFishDesc: string;
+  commodityGrainsOthersName: string;
+  commodityGrainsOthersDesc: string;
 
   // Global Reach
   globalReachTitle: string;
@@ -110,6 +126,10 @@ type TranslationKeys = {
   contactEmailPlaceholder: string;
   contactCommodity: string;
   contactCommodityPlaceholder: string;
+  contactCommodityCategory: string;
+  contactCommodityCategoryPlaceholder: string;
+  contactCommoditySelectCategoryFirst: string;
+  contactCommodityNoProducts: string;
   contactQuantity: string;
   contactQuantityPlaceholder: string;
   contactOrigin: string;
@@ -202,7 +222,23 @@ const translations: Record<Language, TranslationKeys> = {
     commodityOilName: 'Edible Oils',
     commodityOilDesc: 'Soybean, palm, sunflower, and olive oils for industrial and retail markets.',
     commodityDairyName: 'Dairy',
-    commodityDairyDesc: 'Milk powder, butter, cheese, and whey products from premium sources.',
+    commodityDairyDesc: 'Dairy products are derived from the milk of mammals, most commonly cows, goats, and sheep. This category includes milk, cream, butter, yogurt, and a broad variety of artisan cheeses. Beyond their versatility in both everyday and gourmet cuisine, dairy products provide essential calcium, protein, and vitamins for a balanced diet.',
+    commodityPorkName: 'Pork',
+    commodityPorkDesc: 'Pork is the culinary name for the meat of the domestic pig. It is the most widely consumed meat in the world, offering a wide variety of cuts including chops, ribs, tenderloin, and shoulder. Known for its versatility, pork can be roasted, grilled, braised, or cured, and it pairs beautifully with both sweet and savory flavors.',
+    commodityBeefName: 'Beef',
+    commodityBeefDesc: 'Beef is the culinary name for meat from cattle. It is one of the most prized proteins in the world, celebrated for its rich flavor and diverse cuts - from ribeye and sirloin to tenderloin and brisket. Beef is a key source of protein, iron, and essential vitamins, and it forms the foundation of countless classic dishes across global cuisines.',
+    commodityCanadianBeefName: 'Canadian Beef',
+    commodityCanadianBeefDesc: 'Canadian Beef is renowned for its exceptional quality, raised on the vast, open pastures of Canada under strict animal welfare and food safety standards. Canadian cattle are primarily grain-finished, producing beef with outstanding marbling, tenderness, and a rich, distinctive flavor. It is a premium choice trusted by chefs and consumers worldwide.',
+    commodityVealName: 'Veal',
+    commodityVealDesc: 'Veal is the meat of young cattle, prized for its delicate, pale pink color and exceptionally tender texture. It has a mild, subtle flavor that makes it a favorite in refined European cuisines, particularly Italian and French cooking. Common cuts include veal chops, osso buco, and scaloppine, which are often prepared with light sauces to complement the meat\'s natural delicacy.',
+    commodityLambName: 'Lamb',
+    commodityLambDesc: 'Lamb is the meat of young sheep, celebrated for its distinctive, rich flavor and tender texture. It is a staple protein in Mediterranean, Middle Eastern, and South Asian cuisines. Popular cuts include the rack of lamb, leg, and loin chops. Lamb pairs wonderfully with aromatic herbs such as rosemary, mint, and garlic, making it a centerpiece of festive and everyday meals alike.',
+    commodityPoultryName: 'Poultry',
+    commodityPoultryDesc: 'Poultry refers to domesticated birds raised for food, including chicken, turkey, duck, and goose. It is one of the most widely consumed protein sources globally, valued for its lean nutritional profile, mild flavor, and remarkable versatility in the kitchen. From roasted whole birds to grilled breasts and slow-braised thighs, poultry adapts to virtually every cooking method and culinary tradition.',
+    commodityFishName: 'Fish',
+    commodityFishDesc: 'Fish is a cornerstone of healthy diets worldwide, providing high-quality protein, omega-3 fatty acids, and essential minerals. From the rich, buttery flesh of salmon to the firm texture of tuna and the delicate flavor of sea bass, fish offers an extraordinary range of tastes and culinary possibilities. It can be prepared raw, grilled, baked, poached, or fried, making it one of the most versatile proteins available.',
+    commodityGrainsOthersName: 'Grains / Others',
+    commodityGrainsOthersDesc: 'Grains and other staple foods form the nutritional backbone of diets across every culture. This category encompasses wheat, rice, oats, barley, quinoa, corn, and a broad range of legumes and seeds. Rich in complex carbohydrates, dietary fiber, and essential micronutrients, grains provide sustained energy and are the foundation of breads, pastas, cereals, and countless traditional dishes enjoyed around the world.',
 
     // Global Reach
     globalReachTitle: 'Global Reach',
@@ -261,6 +297,10 @@ const translations: Record<Language, TranslationKeys> = {
     contactEmailPlaceholder: 'Enter your email address',
     contactCommodity: 'Commodity',
     contactCommodityPlaceholder: 'Select a commodity',
+    contactCommodityCategory: 'Commodity Category',
+    contactCommodityCategoryPlaceholder: 'Select a category',
+    contactCommoditySelectCategoryFirst: 'Select category first',
+    contactCommodityNoProducts: 'No products configured yet',
     contactQuantity: 'Quantity',
     contactQuantityPlaceholder: 'Enter the desired quantity (e.g., 500 MT)',
     contactOrigin: 'Origin',
@@ -352,7 +392,23 @@ const translations: Record<Language, TranslationKeys> = {
     commodityOilName: 'Aceites Comestibles',
     commodityOilDesc: 'Aceites de soja, palma, girasol y oliva para mercados industriales y minoristas.',
     commodityDairyName: 'Lácteos',
-    commodityDairyDesc: 'Leche en polvo, mantequilla, queso y suero de fuentes premium.',
+    commodityDairyDesc: 'Los productos lácteos provienen de la leche de mamíferos, principalmente vaca, cabra y oveja. Esta categoría incluye leche, crema, mantequilla, yogur y una amplia variedad de quesos artesanales. Además de su versatilidad en cocina diaria y gourmet, los lácteos aportan calcio, proteínas y vitaminas esenciales para una alimentación equilibrada.',
+    commodityPorkName: 'Cerdo',
+    commodityPorkDesc: 'La carne de cerdo es una de las proteínas más consumidas del mundo y ofrece una gran variedad de cortes, como chuletas, costillas, lomo y paleta. Gracias a su versatilidad, puede prepararse asada, a la parrilla, braseada o curada, y combina muy bien con sabores dulces y salados.',
+    commodityBeefName: 'Res',
+    commodityBeefDesc: 'La carne de res es una de las proteínas más valoradas a nivel mundial por su sabor intenso y la diversidad de sus cortes, desde ribeye y sirloin hasta tenderloin y brisket. Además de su perfil culinario, aporta proteína, hierro y vitaminas esenciales.',
+    commodityCanadianBeefName: 'Res Canadiense',
+    commodityCanadianBeefDesc: 'La res canadiense es reconocida por su calidad premium, criada bajo estrictos estándares de bienestar animal e inocuidad alimentaria. Su acabado a grano logra un marmoleo destacado, gran terneza y un sabor distintivo, confiable para chefs y compradores en todo el mundo.',
+    commodityVealName: 'Ternera',
+    commodityVealDesc: 'La ternera proviene de ganado joven y destaca por su color rosado claro, textura tierna y sabor suave. Es muy apreciada en cocinas europeas, especialmente la italiana y la francesa, con cortes como chuletas, ossobuco y escalopines.',
+    commodityLambName: 'Cordero',
+    commodityLambDesc: 'El cordero, carne de oveja joven, es apreciado por su sabor característico y su terneza. Es una proteína clave en cocinas mediterráneas, de Medio Oriente y del sur de Asia, y combina de forma excelente con romero, menta y ajo.',
+    commodityPoultryName: 'Aves',
+    commodityPoultryDesc: 'Las aves de corral incluyen pollo, pavo, pato y ganso. Son una fuente de proteína ampliamente consumida por su perfil magro, sabor suave y gran adaptabilidad a distintos métodos de cocción y tradiciones gastronómicas.',
+    commodityFishName: 'Pescado',
+    commodityFishDesc: 'El pescado es base de una alimentación saludable por su proteína de alta calidad, omega-3 y minerales esenciales. Desde salmón hasta atún o lubina, ofrece múltiples perfiles de sabor y puede prepararse crudo, a la parrilla, al horno, pochado o frito.',
+    commodityGrainsOthersName: 'Granos / Otros',
+    commodityGrainsOthersDesc: 'Los granos y alimentos básicos sostienen la nutrición en todas las culturas. Incluyen trigo, arroz, avena, cebada, quinoa, maíz y diversas legumbres y semillas, aportando energía sostenida, fibra y micronutrientes esenciales.',
 
     // Global Reach
     globalReachTitle: 'Alcance Global',
@@ -411,6 +467,10 @@ const translations: Record<Language, TranslationKeys> = {
     contactEmailPlaceholder: 'Ingrese su correo electrónico',
     contactCommodity: 'Commodity',
     contactCommodityPlaceholder: 'Seleccione una commodity',
+    contactCommodityCategory: 'Categoría',
+    contactCommodityCategoryPlaceholder: 'Seleccione una categoría',
+    contactCommoditySelectCategoryFirst: 'Seleccione primero una categoría',
+    contactCommodityNoProducts: 'Aún no hay productos configurados',
     contactQuantity: 'Cantidad',
     contactQuantityPlaceholder: 'Ingrese la cantidad deseada (ej. 500 MT)',
     contactOrigin: 'Origen',
@@ -502,7 +562,23 @@ const translations: Record<Language, TranslationKeys> = {
     commodityOilName: '食用油',
     commodityOilDesc: '大豆油、棕榈油、葵花籽油和橄榄油，面向工业和零售市场。',
     commodityDairyName: '乳制品',
-    commodityDairyDesc: '来自优质来源的奶粉、黄油、奶酪和乳清产品。',
+    commodityDairyDesc: '乳制品来源于哺乳动物的奶，最常见的是牛、山羊和绵羊。该类别包括牛奶、奶油、黄油、酸奶以及多种手工奶酪。乳制品不仅适用于日常与精品烹饪，还能提供钙、蛋白质和多种维生素，是均衡饮食中的重要组成部分。',
+    commodityPorkName: '猪肉',
+    commodityPorkDesc: '猪肉是全球消费最广泛的肉类之一，常见部位包括猪排、肋排、里脊和肩肉。其烹饪方式多样，可烤、煎、炖或腌制，适配甜咸多种风味。',
+    commodityBeefName: '牛肉',
+    commodityBeefDesc: '牛肉以浓郁风味和多样部位而闻名，从肋眼和西冷到里脊和胸肉，广受欢迎。同时富含优质蛋白、铁和多种关键维生素。',
+    commodityCanadianBeefName: '加拿大牛肉',
+    commodityCanadianBeefDesc: '加拿大牛肉在严格的动物福利与食品安全标准下生产，以优良雪花纹理、嫩度和风味著称。其高品质使其成为全球市场信赖的优选。',
+    commodityVealName: '小牛肉',
+    commodityVealDesc: '小牛肉来自幼龄牛，色泽浅粉、口感细嫩、风味温和，常用于意法等精致料理。常见部位包括小牛排、牛膝和薄切肉片。',
+    commodityLambName: '羊肉',
+    commodityLambDesc: '羊肉以其独特风味和嫩度受到青睐，是地中海、中东和南亚料理中的核心蛋白之一。常见部位有羊排、羊腿和里脊。',
+    commodityPoultryName: '禽类',
+    commodityPoultryDesc: '禽类包括鸡、火鸡、鸭和鹅，是全球常见蛋白来源。其脂肪相对较低、风味温和，适用于烤、煎、炖等多种烹饪方式。',
+    commodityFishName: '鱼类',
+    commodityFishDesc: '鱼类富含优质蛋白、Omega-3 脂肪酸和多种矿物质，是健康饮食的重要组成。可生食、烤制、焗烤、水煮或油炸，应用场景广泛。',
+    commodityGrainsOthersName: '谷物 / 其他',
+    commodityGrainsOthersDesc: '谷物及其他主食是多种饮食结构的基础，包括小麦、大米、燕麦、大麦、藜麦、玉米以及豆类和种子，提供持续能量、膳食纤维与关键微量营养素。',
 
     // Global Reach
     globalReachTitle: '全球布局',
@@ -561,6 +637,10 @@ const translations: Record<Language, TranslationKeys> = {
     contactEmailPlaceholder: '请输入您的电子邮箱',
     contactCommodity: '商品',
     contactCommodityPlaceholder: '请选择商品',
+    contactCommodityCategory: '商品类别',
+    contactCommodityCategoryPlaceholder: '请选择类别',
+    contactCommoditySelectCategoryFirst: '请先选择类别',
+    contactCommodityNoProducts: '暂无可选商品',
     contactQuantity: '数量',
     contactQuantityPlaceholder: '请输入所需数量（如 500 吨）',
     contactOrigin: '原产地',

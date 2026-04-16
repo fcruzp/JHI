@@ -8,6 +8,8 @@ const contactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.email('Invalid email address'),
   commodity: z.string().min(1, 'Commodity is required'),
+  commodityCategory: z.string().optional(),
+  commodityProduct: z.string().optional(),
   quantity: z.string().min(1, 'Quantity is required'),
   origin: z.string().min(1, 'Origin is required'),
   destination: z.string().min(1, 'Destination is required'),
@@ -30,7 +32,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, commodity, quantity, origin, destination, incoterms, message } = result.data;
+    const { name, email, commodity, commodityCategory, commodityProduct, quantity, origin, destination, incoterms, message } = result.data;
+    const commodityDisplay =
+      commodityCategory && commodityProduct
+        ? `${commodityCategory}: ${commodityProduct}`
+        : commodity;
 
     console.log('Contact form submission:', result.data);
 
@@ -48,7 +54,18 @@ export async function POST(request: NextRequest) {
       const normalizeProducto = (val: string): ProductoCotizado => {
         const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         if (lower.includes('azucar') || lower.includes('sugar')) return 'azucar';
-        if (lower.includes('chicken') || lower.includes('paw')) return 'chicken_paws';
+        if (
+          lower.includes('chicken') ||
+          lower.includes('paw') ||
+          lower.includes('meat') ||
+          lower.includes('carne') ||
+          lower.includes('pork') ||
+          lower.includes('cerdo') ||
+          lower.includes('beef') ||
+          lower.includes('res')
+        ) {
+          return 'chicken_paws';
+        }
         if (lower.includes('grano') || lower.includes('grain')) return 'granos';
         if (lower.includes('cafe') || lower.includes('coffee')) return 'cafe';
         if (lower.includes('aceite') || lower.includes('oil')) return 'aceites';
@@ -66,15 +83,15 @@ export async function POST(request: NextRequest) {
 
       // Map to new cotizacion schema
       const cotizacionData: CotizacionData = {
-        producto_cotizado: normalizeProducto(commodity),
-        producto_nombre_original: commodity, // Keep original name for dealname display
+        producto_cotizado: normalizeProducto(commodityDisplay),
+        producto_nombre_original: commodityDisplay, // Keep original name for dealname display
         incoterm: normalizeIncoterm(incoterms),
         tipo_cliente_operacion: 'cliente_directo',
         mercado_origen: origin,
         contactId: contact.id,
         contactEmail: email,
         amount: String(quantity).replace(/[^0-9.]/g, '') || quantity, // Extract only numeric part
-        description: message,
+        description: `Origin: ${origin}\nDestination: ${destination}\nIncoterms: ${incoterms}\nCommodity: ${commodityDisplay}\nCategory: ${commodityCategory || 'N/A'}\nProduct: ${commodityProduct || 'N/A'}\nMessage: ${message}`,
       };
 
       // Create cotizacion
@@ -99,7 +116,7 @@ export async function POST(request: NextRequest) {
       try {
         await EmailService.sendLevantandoPrecio(email, {
           nombre: name.split(' ')[0] || name,
-          producto: commodity,
+          producto: commodityDisplay,
           incoterm: incoterms,
           cantidad: quantity,
           cotizacionId: cotizacion.id,
