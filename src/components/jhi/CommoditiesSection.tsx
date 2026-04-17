@@ -17,7 +17,7 @@ const commodities: Commodity[] = [
   { key: 'Beef', image: '/images/commodities/beef.jpg', href: '/commodities/beef' },
   { key: 'CanadianBeef', image: '/images/commodities/canadian-beef.jpg', href: '/commodities/canadian-beef' },
   { key: 'Veal', image: '/images/commodities/veal.jpg', href: '/commodities/veal' },
-  { key: 'Lamb', image: '/images/commodities/lamb.jpg' },
+  { key: 'Lamb', image: '/images/commodities/lamb.jpg', href: '/commodities/lamb' },
   { key: 'Poultry', image: '/images/commodities/poultry.jpg' },
   { key: 'Fish', image: '/images/commodities/fish.jpg' },
   { key: 'Dairy', image: '/images/commodities/dairy.jpg' },
