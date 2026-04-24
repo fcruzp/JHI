@@ -24,6 +24,7 @@ export function ThemeImage({
 
   // When mounted on client, now we can show the UI
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

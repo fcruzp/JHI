@@ -87,7 +87,7 @@ export const StatusUpdateEmail = ({
         
         <Section style={{ padding: '20px 40px', textAlign: 'center' }}>
           <Text style={{ fontSize: 12, color: '#999', margin: '8px 0' }}>
-            <Link href="https://jhugeinternational.com" style={{ color: '#c9a84c', textDecoration: 'underline' }}>www.jhugeinternational.com</Link>
+            <Link href="https://jhugeint.com" style={{ color: '#c9a84c', textDecoration: 'underline' }}>www.jhugeint.com</Link>
           </Text>
           <Text style={{ fontSize: 10, color: '#bbb', margin: '4px 0' }}>
             Este es un correo informativo sobre su propuesta comercial activa.

@@ -47,7 +47,7 @@ export const LevantandoPrecioEmail = ({ nombre, producto, incoterm, cantidad, co
         <Hr style={{ borderColor: '#e0e0e0', margin: '0 40px' }} />
         <Section style={{ padding: '20px 40px', textAlign: 'center' }}>
           <Text style={{ fontSize: 12, color: '#999', margin: '8px 0' }}>
-            <Link href="https://jhugeinternational.com" style={{ color: '#c9a84c', textDecoration: 'underline' }}>www.jhugeinternational.com</Link>
+            <Link href="https://jhugeint.com" style={{ color: '#c9a84c', textDecoration: 'underline' }}>www.jhugeint.com</Link>
           </Text>
         </Section>
       </Container>

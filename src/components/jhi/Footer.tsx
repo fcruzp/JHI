@@ -1,7 +1,9 @@
+'use client';
+
 import { Linkedin, Twitter } from 'lucide-react';
 import Image from 'next/image';
-import { getTranslationServer } from '@/lib/i18n-server';
-import { cookies } from 'next/headers';
+import { useAppStore } from '@/lib/store';
+import { getTranslation } from '@/lib/i18n';
 
 const navItems = [
   { key: 'headerAbout', href: '#about' },
@@ -12,11 +14,9 @@ const navItems = [
   { key: 'headerContact', href: '#contact' },
 ];
 
-export async function Footer() {
-  const cookieStore = await cookies();
-  const language = cookieStore.get('language')?.value || 'es';
-  const t = getTranslationServer(language);
-
+export function Footer() {
+  const { language } = useAppStore();
+  const t = getTranslation(language);
   const year = new Date().getFullYear();
 
   return (
@@ -42,7 +42,7 @@ export async function Footer() {
               />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t.heroSubtitle}
+              {t.footerDesc}
             </p>
           </div>
 
@@ -58,7 +58,7 @@ export async function Footer() {
                     href={item.href}
                     className="text-sm transition-colors duration-200 hover:text-[#c9a84c] text-gray-500 dark:text-gray-400"
                   >
-                    {t[item.key as keyof typeof t]}
+                    {t[item.key as keyof typeof t] as string}
                   </a>
                 </li>
               ))}
@@ -97,9 +97,28 @@ export async function Footer() {
             <h4 className="font-semibold text-sm mb-4 text-gray-900 dark:text-white">
               {t.footerLang}
             </h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              EN | ES | 中文
-            </p>
+            <div className="flex items-center gap-2 text-sm">
+              {(['en', 'es', 'zh'] as const).map((lang, i, arr) => (
+                <span key={lang} className="flex items-center">
+                  <button
+                    onClick={() => {
+                      const { setLanguage } = useAppStore.getState();
+                      setLanguage(lang);
+                    }}
+                    className={`transition-colors duration-200 ${
+                      language === lang
+                        ? 'text-[#c9a84c] font-semibold'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {lang === 'en' ? 'EN' : lang === 'es' ? 'ES' : '中文'}
+                  </button>
+                  {i < arr.length - 1 && (
+                    <span className="text-gray-300 dark:text-gray-600 ml-2">|</span>
+                  )}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 

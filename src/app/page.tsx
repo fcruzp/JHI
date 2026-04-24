@@ -6,7 +6,7 @@ import { GlobalReachSection } from '@/components/jhi/GlobalReachSection';
 import { WhyChooseSection } from '@/components/jhi/WhyChooseSection';
 import { FaqSection } from '@/components/jhi/FaqSection';
 import { SpeakWithTeamSection } from '@/components/jhi/SpeakWithTeamSection';
-import { ContactSection } from '@/components/jhi/ContactSection';
+import { QuoteFormSection } from '@/components/jhi/QuoteFormSection';
 import { Footer } from '@/components/jhi/Footer';
 import { ChatWidget } from '@/components/jhi/ChatWidget';
 
@@ -22,7 +22,7 @@ export default function Home() {
         <WhyChooseSection />
         <FaqSection />
         <SpeakWithTeamSection />
-        <ContactSection />
+        <QuoteFormSection />
       </main>
       <Footer />
       <ChatWidget />

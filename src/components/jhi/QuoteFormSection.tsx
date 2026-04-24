@@ -18,7 +18,11 @@ import { useAppStore } from '@/lib/store';
 import { getTranslation } from '@/lib/i18n';
 import { ScrollAnimation } from './ScrollAnimations';
 
-export function ContactSection() {
+interface QuoteFormSectionProps {
+  isEmbedded?: boolean;
+}
+
+export function QuoteFormSection({ isEmbedded = false }: QuoteFormSectionProps) {
   const { language, pendingQuoteSelection, setPendingQuoteSelection } = useAppStore();
   const t = getTranslation(language);
 
@@ -352,19 +356,21 @@ export function ContactSection() {
   return (
     <section
       id="contact"
-      className="py-20 sm:py-28 bg-white dark:bg-[#0a0a0a]"
+      className={isEmbedded ? "py-8 bg-transparent" : "py-20 sm:py-28 bg-white dark:bg-[#0a0a0a]"}
     >
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={isEmbedded ? "w-full" : "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"}>
         {/* Section Header */}
-        <ScrollAnimation className="text-center mb-12 sm:mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
-            {t.contactTitle}
-          </h2>
-          <p className="text-lg max-w-2xl mx-auto text-gray-500 dark:text-gray-400">
-            {t.contactSubtitle}
-          </p>
-          <div className="mt-6 h-1 w-20 mx-auto bg-gradient-to-r from-[#c9a84c] via-[#e2c66d] to-[#c9a84c] rounded-full" />
-        </ScrollAnimation>
+        {!isEmbedded && (
+          <ScrollAnimation className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+              {t.contactTitle}
+            </h2>
+            <p className="text-lg max-w-2xl mx-auto text-gray-500 dark:text-gray-400">
+              {t.contactSubtitle}
+            </p>
+            <div className="mt-6 h-1 w-20 mx-auto bg-gradient-to-r from-[#c9a84c] via-[#e2c66d] to-[#c9a84c] rounded-full" />
+          </ScrollAnimation>
+        )}
 
         {/* Form */}
         <ScrollAnimation delay={0.2}>

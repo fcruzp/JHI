@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://jhugeinternational.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://jhugeint.com'),
   title: {
     default: "J Huge International | Global Commodity Intermediaries",
     template: "%s | J Huge International",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://jhugeinternational.com",
+    url: "https://jhugeint.com",
     siteName: "J Huge International",
     title: "J Huge International | Global Commodity Intermediaries",
     description:
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     images: ["/images/og-image.jpg"],
   },
   alternates: {
-    canonical: "https://jhugeinternational.com",
+    canonical: "https://jhugeint.com",
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,

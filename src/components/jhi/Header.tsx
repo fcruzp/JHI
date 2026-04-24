@@ -77,6 +77,10 @@ export function Header() {
 
           {/* Right side controls */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <a href="/broker" className="hidden lg:block text-sm font-semibold text-[#c9a84c] border border-[#c9a84c] rounded-lg px-3 py-1.5 hover:bg-[#c9a84c] hover:text-white transition-colors duration-200">
+              {t.brokerPortal}
+            </a>
+
             {/* Language selector */}
             <div className="hidden sm:flex items-center gap-1 text-sm">
               {languages.map((lang, i) => (
@@ -148,6 +152,13 @@ export function Header() {
                   {t[item.key as keyof typeof t]}
                 </a>
               ))}
+              <a
+                href="/broker"
+                onClick={() => setMobileOpen(false)}
+                className="block px-4 py-3 rounded-lg text-base font-semibold transition-colors text-[#c9a84c] hover:bg-[#c9a84c]/10"
+              >
+                {t.brokerPortal}
+              </a>
               {/* Mobile language selector */}
               <div className="flex items-center gap-2 px-4 py-3">
                 {languages.map((lang, i) => (

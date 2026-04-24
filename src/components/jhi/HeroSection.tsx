@@ -113,23 +113,32 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.9 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          className="flex flex-col items-center gap-6"
         >
-          <Button
-            onClick={scrollToContact}
-            size="lg"
-            className="bg-[#c9a84c] hover:bg-[#b8973f] text-[#0a0a0a] font-semibold px-8 py-6 text-base sm:text-lg rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-[#c9a84c]/20 animate-pulse-glow"
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button
+              onClick={scrollToContact}
+              size="lg"
+              className="bg-[#c9a84c] hover:bg-[#b8973f] text-[#0a0a0a] font-semibold px-8 py-6 text-base sm:text-lg rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-[#c9a84c]/20 animate-pulse-glow"
+            >
+              {t.heroCtaQuote}
+            </Button>
+            <Button
+              onClick={() => setChatOpen(true)}
+              variant="outline"
+              size="lg"
+              className="border-[#c9a84c]/40 text-[#c9a84c] hover:bg-[#c9a84c]/10 hover:border-[#c9a84c]/60 font-semibold px-8 py-6 text-base sm:text-lg rounded-xl transition-all duration-300 bg-transparent"
+            >
+              {t.heroCtaChat}
+            </Button>
+          </div>
+          
+          <a 
+            href="/broker"
+            className="text-sm font-semibold text-[#c9a84c] border border-[#c9a84c] rounded-lg px-6 py-3 hover:bg-[#c9a84c] hover:text-white transition-colors duration-200"
           >
-            {t.heroCtaQuote}
-          </Button>
-          <Button
-            onClick={() => setChatOpen(true)}
-            variant="outline"
-            size="lg"
-            className="border-[#c9a84c]/40 text-[#c9a84c] hover:bg-[#c9a84c]/10 hover:border-[#c9a84c]/60 font-semibold px-8 py-6 text-base sm:text-lg rounded-xl transition-all duration-300 bg-transparent"
-          >
-            {t.heroCtaChat}
-          </Button>
+            {t.brokerPortal}
+          </a>
         </motion.div>
       </div>
 

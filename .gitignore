@@ -30,6 +30,9 @@ dev.log
 dev.out.log
 server.log
 
+# Others
+/DOCUMENTS-IGNORE/
+
 # Environment Variables
 .env
 .env.local

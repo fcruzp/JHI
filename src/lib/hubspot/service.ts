@@ -81,6 +81,7 @@ export class ContactsService {
           },
         ],
         limit: 1,
+        properties: ['email', 'firstname', 'lastname', 'phone', 'rol_en_la_operacion', 'broker_password_hash', 'broker_status'],
       }),
     });
 
@@ -104,6 +105,8 @@ export class ContactsService {
     if (data.lastName) properties.lastname = data.lastName;
     if (data.phone) properties.phone = data.phone;
     if (data.rol_en_la_operacion) properties.rol_en_la_operacion = data.rol_en_la_operacion;
+    if (data.broker_password_hash) properties.broker_password_hash = data.broker_password_hash;
+    if (data.broker_status) properties.broker_status = data.broker_status;
 
     const response = await fetch(`${HUBSPOT_API_URL}/crm/v3/objects/contacts`, {
       method: 'POST',
@@ -128,6 +131,8 @@ export class ContactsService {
     if (data.lastName) properties.lastname = data.lastName;
     if (data.phone) properties.phone = data.phone;
     if (data.rol_en_la_operacion) properties.rol_en_la_operacion = data.rol_en_la_operacion;
+    if (data.broker_password_hash) properties.broker_password_hash = data.broker_password_hash;
+    if (data.broker_status) properties.broker_status = data.broker_status;
 
     const response = await fetch(
       `${HUBSPOT_API_URL}/crm/v3/objects/contacts/${contactId}`,
@@ -166,7 +171,7 @@ export class ContactsService {
    */
   static async getById(id: string): Promise<HubSpotObject | null> {
     const response = await fetch(
-      `${HUBSPOT_API_URL}/crm/v3/objects/contacts/${id}?properties=email,firstname,lastname,phone,rol_en_la_operacion`,
+      `${HUBSPOT_API_URL}/crm/v3/objects/contacts/${id}?properties=email,firstname,lastname,phone,rol_en_la_operacion,broker_password_hash,broker_status`,
       {
         headers: getHeaders(),
       }

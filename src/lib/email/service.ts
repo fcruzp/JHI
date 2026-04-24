@@ -13,7 +13,7 @@ import { StatusUpdateEmail } from './templates/status-update';
 import { ClientCommentInternalEmail } from './templates/client-comment-internal';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@jhugeinternational.com';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@jhugeint.com';
 
 // Initialize Resend (will work without API key in dev mode with mock)
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;

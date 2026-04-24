@@ -7,7 +7,8 @@ A luxury enterprise marketing website for **J Huge International (JHI)**, a glob
 ### User-Facing Features
 
 - **🌍 Interactive 3D Globe** - Real-time visualization of trade routes from Brazil to 12+ destination countries using Three.js and globe.gl
-- **🌐 Multi-Language Support** - Full i18n for English, Spanish, and Chinese (130+ translation keys)
+- **🌐 Advanced Internationalization** - Multi-language support for English, Spanish, and Chinese (260+ translation keys) using Zustand-based state management and dynamic HubSpot data mapping for localized data visualization.
+- **🔐 Broker Portal** - Secure authentication (NextAuth) and registration for brokers with a real-time dashboard tracking quote progress.
 - **🤖 AI Sales Agent** - Gemini-powered chat that acts as a professional sales agent, collects quote information, and syncs directly with HubSpot CRM
 - **📝 Validated Contact Forms** - Zod v4 schema validation on client and server with toast feedback
 - **🎨 Premium Gold Aesthetic** - Dark/light theme with custom gold (#c9a84c) accent, glass morphism, and shimmer effects
@@ -42,7 +43,7 @@ A luxury enterprise marketing website for **J Huge International (JHI)**, a glob
 | **Markdown** | react-markdown |
 | **State Management** | Zustand (with localStorage persistence) |
 | **Forms** | React Hook Form + Zod v4 |
-| **i18n** | Custom in-house (EN/ES/ZH) |
+| **i18n** | Custom Unified System (EN/ES/ZH) + Dynamic Mapping |
 | **Theme** | next-themes (dark/light) |
 | **AI Engine** | Google Gemini via `@google/generative-ai` |
 | **CRM** | HubSpot (contacts, companies, cotizaciones custom object) |
@@ -80,9 +81,11 @@ A luxury enterprise marketing website for **J Huge International (JHI)**, a glob
 │   │   │   ├── FaqSection.tsx
 │   │   │   ├── ContactSection.tsx
 │   │   │   ├── SpeakWithTeamSection.tsx
-│   │   │   ├── Footer.tsx          # Server Component (no 'use client')
+│   │   │   ├── Footer.tsx          # Client Component (shared state support)
 │   │   │   ├── ChatWidget.tsx      # AI chat with markdown rendering
 │   │   │   └── ScrollAnimations.tsx
+│   │   ├── broker/            # Broker-specific components
+│   │   │   └── DashboardContent.tsx # Localized dashboard UI with HubSpot data mapping
 │   │   └── ui/                # 38 shadcn/ui components
 │   ├── hooks/
 │   │   ├── use-mobile.ts      # Mobile breakpoint detection
@@ -168,7 +171,7 @@ RESEND_API_KEY=re_xxxxxxxxxxxxxxxx
 EMAIL_FROM=onboarding@resend.dev  # Or your verified domain
 
 # SEO
-NEXT_PUBLIC_BASE_URL=https://jhugeinternational.com
+NEXT_PUBLIC_BASE_URL=https://jhugeint.com
 GOOGLE_SITE_VERIFICATION=your_verification_code
 ```
 
@@ -485,6 +488,29 @@ See these files for details:
 - `PHASE4_IMPLEMENTATION_COMPLETE.md` - Complete Phase 4 implementation docs
 - `PHASE4_ADMIN_PANEL_PLAN.md` - Original plan and requirements
 - `scripts/check-hubspot-properties.ts` - Script to verify HubSpot field names
+
+## 🌐 Phase 5: Broker Portal & Internationalization - COMPLETE ✅
+
+### Features Implemented
+
+1. **Broker Portal Refactoring** (NextAuth)
+   - Secure Login/Registration system.
+   - Real-time Dashboard for brokers to track their clients' quotes.
+   - Hybrid rendering (Server data fetching + Client localization).
+
+2. **Unified i18n Architecture**
+   - Centralized `getTranslation` utility supporting EN, ES, and ZH.
+   - Global state management via Zustand with localStorage persistence.
+   - Full internationalization of Home, Broker Portal, and Admin layouts.
+
+3. **Dynamic HubSpot Data Mapping**
+   - Translation layer that converts internal HubSpot status/product/incoterm values (ES) into the user's interface language (EN/ZH).
+   - Maintenance of Spanish backoffice consistency while providing a multilingual frontend experience.
+
+4. **Code Quality & UI Consistency**
+   - Full linting pass with 0 errors.
+   - Conversion of Footer and Header to client-aware components for instant language switching.
+   - SEO-optimized metadata across all portal pages.
 
 ---
 

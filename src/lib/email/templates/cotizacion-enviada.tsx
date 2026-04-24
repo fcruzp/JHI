@@ -81,8 +81,8 @@ export const CotizacionEnviadaEmail = ({
               Este correo fue enviado automáticamente por el sistema de J Huge International.
             </Text>
             <Text style={footerText}>
-              <Link href="https://jhugeinternational.com" style={footerLink}>
-                www.jhugeinternational.com
+              <Link href="https://jhugeint.com" style={footerLink}>
+                www.jhugeint.com
               </Link>
             </Text>
           </Section>

@@ -171,6 +171,8 @@ export interface ContactData {
   phone?: string;
   rol_en_la_operacion?: RolEnLaOperacion;
   companyId?: string;
+  broker_password_hash?: string;
+  broker_status?: 'pendiente' | 'activo';
 }
 
 export interface CompanyData {

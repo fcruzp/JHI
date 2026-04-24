@@ -151,6 +151,7 @@ type TranslationKeys = {
   footerNav: string;
   footerFollow: string;
   footerLang: string;
+  footerDesc: string;
 
   // FAQ
   faqTitle: string;
@@ -177,6 +178,87 @@ type TranslationKeys = {
 
   // Shared
   loading: string;
+  backToHome: string;
+  signOut: string;
+
+  // Broker Portal - Shared
+  brokerPortal: string;
+
+  // Broker Portal - Login
+  loginTitle: string;
+  loginSubtitle: string;
+  loginVerificationPending: string;
+  loginSubtitleSimple: string;
+  loginLabelEmail: string;
+  loginLabelPassword: string;
+  loginButton: string;
+  loginButtonLoading: string;
+  loginNoAccount: string;
+  loginRequestAccess: string;
+  loginSuccessTitle: string;
+  loginSuccessDesc: string;
+  loginErrorTitle: string;
+  loginErrorDesc: string;
+
+  // Broker Portal - Register
+  registerTitle: string;
+  registerSubtitle: string;
+  registerLabelFirstName: string;
+  registerLabelLastName: string;
+  registerButton: string;
+  registerButtonLoading: string;
+  registerHaveAccount: string;
+  registerLoginHere: string;
+  registerSuccessTitle: string;
+  registerSuccessDesc: string;
+  registerErrorTitle: string;
+
+  // Broker Portal - Dashboard
+  dashboardWelcome: string;
+  howItWorksTitle: string;
+  howItWorksStep1Title: string;
+  howItWorksStep1Desc: string;
+  howItWorksStep2Title: string;
+  howItWorksStep2Desc: string;
+  howItWorksStep3Title: string;
+  howItWorksStep3Desc: string;
+  howItWorksStep4Title: string;
+  howItWorksStep4Desc: string;
+  howItWorksStep5Title: string;
+  howItWorksStep5Desc: string;
+  activeQuotesTitle: string;
+  noQuotes: string;
+  tableHeaderBusiness: string;
+  tableHeaderVolume: string;
+  tableHeaderDate: string;
+  tableHeaderStatus: string;
+  tableIncoterm: string;
+  tableVolumeTBD: string;
+  newQuoteRequestTitle: string;
+  newQuoteRequestSubtitle: string;
+
+  // HubSpot Display Mapping (Translating Spanish values from HubSpot)
+  status_levantando_precio: string;
+  status_validando_logistica: string;
+  status_preparando_cotizacion_formal: string;
+  status_cotizacion_enviada: string;
+  status_en_negociacion: string;
+  status_ganada: string;
+  status_perdida: string;
+  
+  product_azucar: string;
+  product_chicken_paws: string;
+  product_granos: string;
+  product_cafe: string;
+  product_aceites: string;
+  product_lacteos: string;
+  product_otro: string;
+
+  incoterm_fob: string;
+  incoterm_cif: string;
+  incoterm_cfr: string;
+  incoterm_exw: string;
+  incoterm_otro: string;
 };
 
 const translations: Record<Language, TranslationKeys> = {
@@ -322,6 +404,7 @@ const translations: Record<Language, TranslationKeys> = {
     footerNav: 'Navigation',
     footerFollow: 'Follow Us',
     footerLang: 'Language',
+    footerDesc: 'Global commodity intermediaries facilitating trade in more than 50 countries since 2008.',
 
     // FAQ
     faqTitle: 'Frequently Asked Questions',
@@ -348,6 +431,87 @@ const translations: Record<Language, TranslationKeys> = {
 
     // Shared
     loading: 'Loading...',
+    backToHome: 'Back to Home',
+    signOut: 'Sign Out',
+
+    // Broker Portal - Shared
+    brokerPortal: 'Broker Portal',
+
+    // Broker Portal - Login
+    loginTitle: 'Broker Portal',
+    loginSubtitle: 'Sign in to access your broker dashboard',
+    loginVerificationPending: 'Please check your email to activate your account before logging in.',
+    loginSubtitleSimple: 'Log in to manage your quotes',
+    loginLabelEmail: 'Email Address',
+    loginLabelPassword: 'Password',
+    loginButton: 'Log In',
+    loginButtonLoading: 'Logging in...',
+    loginNoAccount: 'Not a broker yet?',
+    loginRequestAccess: 'Request access here',
+    loginSuccessTitle: 'Welcome',
+    loginSuccessDesc: 'Logged in successfully.',
+    loginErrorTitle: 'Error',
+    loginErrorDesc: 'Internal login error.',
+
+    // Broker Portal - Register
+    registerTitle: 'Broker Registration',
+    registerSubtitle: 'Create your account to manage your quotes',
+    registerLabelFirstName: 'First Name',
+    registerLabelLastName: 'Last Name',
+    registerButton: 'Register',
+    registerButtonLoading: 'Registering...',
+    registerHaveAccount: 'Already have an account?',
+    registerLoginHere: 'Log in here',
+    registerSuccessTitle: 'Registration Successful',
+    registerSuccessDesc: 'Check your inbox to verify your account.',
+    registerErrorTitle: 'Error',
+
+    // Broker Portal - Dashboard
+    dashboardWelcome: 'Welcome, {name}',
+    howItWorksTitle: 'How it works?',
+    howItWorksStep1Title: 'Find Clients',
+    howItWorksStep1Desc: 'Identify end buyers for commodities (sugar, chicken, grains, coffee, etc.)',
+    howItWorksStep2Title: 'Get a Quote',
+    howItWorksStep2Desc: 'Get base prices and logistics from JHI through our chatbot or form.',
+    howItWorksStep3Title: 'Apply Commission',
+    howItWorksStep3Desc: 'Add your intermediation margin (markup) to the price presented to the buyer.',
+    howItWorksStep4Title: 'Monitor Progress',
+    howItWorksStep4Desc: 'Consult the real-time status of each business from this portal.',
+    howItWorksStep5Title: 'Collect Commission',
+    howItWorksStep5Desc: 'When the deal is closed and paid, JHI transfers the agreed commission to you.',
+    activeQuotesTitle: 'Your Active Quotes',
+    noQuotes: 'You don\'t have any quotes registered yet. Explore our services and request your first base price.',
+    tableHeaderBusiness: 'Business / Product',
+    tableHeaderVolume: 'Volume',
+    tableHeaderDate: 'Date',
+    tableHeaderStatus: 'Status',
+    tableIncoterm: 'Incoterm',
+    tableVolumeTBD: 'To be defined',
+    newQuoteRequestTitle: 'Request a New Quote',
+    newQuoteRequestSubtitle: 'Complete the following form with your client\'s requirements to start a new quote process.',
+
+    // HubSpot Display Mapping
+    status_levantando_precio: 'Gathering Prices',
+    status_validando_logistica: 'Validating Logistics',
+    status_preparando_cotizacion_formal: 'Preparing Formal Quote',
+    status_cotizacion_enviada: 'Quote Sent',
+    status_en_negociacion: 'In Negotiation',
+    status_ganada: 'Won',
+    status_perdida: 'Lost',
+    
+    product_azucar: 'Sugar',
+    product_chicken_paws: 'Chicken Paws',
+    product_granos: 'Grains',
+    product_cafe: 'Coffee',
+    product_aceites: 'Edible Oils',
+    product_lacteos: 'Dairy',
+    product_otro: 'Other',
+
+    incoterm_fob: 'FOB',
+    incoterm_cif: 'CIF',
+    incoterm_cfr: 'CFR',
+    incoterm_exw: 'EXW',
+    incoterm_otro: 'Other',
   },
 
   es: {
@@ -492,6 +656,7 @@ const translations: Record<Language, TranslationKeys> = {
     footerNav: 'Navegación',
     footerFollow: 'Síguenos',
     footerLang: 'Idioma',
+    footerDesc: 'Intermediarios globales de commodities facilitando el comercio en más de 50 países desde 2008.',
 
     // FAQ
     faqTitle: 'Preguntas Frecuentes',
@@ -518,6 +683,87 @@ const translations: Record<Language, TranslationKeys> = {
 
     // Shared
     loading: 'Cargando...',
+    backToHome: 'Volver al Inicio',
+    signOut: 'Cerrar Sesión',
+
+    // Broker Portal - Shared
+    brokerPortal: 'Portal de Brokers',
+
+    // Broker Portal - Login
+    loginTitle: 'Portal de Brokers',
+    loginSubtitle: 'Inicia sesión para acceder a tu panel de control',
+    loginVerificationPending: 'Por favor revisa tu correo para activar tu cuenta antes de iniciar sesión.',
+    loginSubtitleSimple: 'Inicia sesión para gestionar tus cotizaciones',
+    loginLabelEmail: 'Correo Electrónico',
+    loginLabelPassword: 'Contraseña',
+    loginButton: 'Iniciar Sesión',
+    loginButtonLoading: 'Iniciando...',
+    loginNoAccount: '¿Aún no eres broker?',
+    loginRequestAccess: 'Solicita acceso aquí',
+    loginSuccessTitle: 'Bienvenido',
+    loginSuccessDesc: 'Sesión iniciada correctamente.',
+    loginErrorTitle: 'Error',
+    loginErrorDesc: 'Error interno de inicio de sesión.',
+
+    // Broker Portal - Register
+    registerTitle: 'Registro de Broker',
+    registerSubtitle: 'Crea tu cuenta para gestionar tus cotizaciones',
+    registerLabelFirstName: 'Nombre',
+    registerLabelLastName: 'Apellido',
+    registerButton: 'Registrar',
+    registerButtonLoading: 'Registrando...',
+    registerHaveAccount: '¿Ya tienes cuenta?',
+    registerLoginHere: 'Inicia sesión aquí',
+    registerSuccessTitle: 'Registro exitoso',
+    registerSuccessDesc: 'Revisa tu bandeja de entrada para verificar tu cuenta.',
+    registerErrorTitle: 'Error',
+
+    // Broker Portal - Dashboard
+    dashboardWelcome: 'Bienvenido, {name}',
+    howItWorksTitle: '¿Cómo funciona?',
+    howItWorksStep1Title: 'Encuentra clientes',
+    howItWorksStep1Desc: 'Identifica compradores finales para commodities (azúcar, pollo, granos, café, etc.)',
+    howItWorksStep2Title: 'Cotiza con nosotros',
+    howItWorksStep2Desc: 'Obtén de JHI los precios base y logística a través de nuestro chatbot o formulario.',
+    howItWorksStep3Title: 'Aplica tu comisión',
+    howItWorksStep3Desc: 'Añade tu margen de intermediación al precio (markup) que se presentará al comprador.',
+    howItWorksStep4Title: 'Monitorea el progreso',
+    howItWorksStep4Desc: 'Desde este portal puedes consultar el estatus en tiempo real de cada negocio.',
+    howItWorksStep5Title: 'Cobra tu comisión',
+    howItWorksStep5Desc: 'Al concretarse el cierre y pago, JHI te transfiere la comisión pactada.',
+    activeQuotesTitle: 'Tus cotizaciones activas',
+    noQuotes: 'Aún no tienes cotizaciones registradas. Explora nuestros servicios y solicita tu primer precio base.',
+    tableHeaderBusiness: 'Negocio / Producto',
+    tableHeaderVolume: 'Volumen',
+    tableHeaderDate: 'Fecha',
+    tableHeaderStatus: 'Estatus',
+    tableIncoterm: 'Incoterm',
+    tableVolumeTBD: 'Por definir',
+    newQuoteRequestTitle: 'Solicita una nueva cotización',
+    newQuoteRequestSubtitle: 'Completa el siguiente formulario con los requerimientos de tu cliente para iniciar un nuevo proceso de cotización.',
+
+    // HubSpot Display Mapping
+    status_levantando_precio: 'Levantando precio',
+    status_validando_logistica: 'Validando logística',
+    status_preparando_cotizacion_formal: 'Preparando cotización formal',
+    status_cotizacion_enviada: 'Cotización enviada',
+    status_en_negociacion: 'En negociación',
+    status_ganada: 'Ganada',
+    status_perdida: 'Perdida',
+    
+    product_azucar: 'Azúcar',
+    product_chicken_paws: 'Chicken Paws',
+    product_granos: 'Granos',
+    product_cafe: 'Café',
+    product_aceites: 'Aceites',
+    product_lacteos: 'Lácteos',
+    product_otro: 'Otro',
+
+    incoterm_fob: 'FOB',
+    incoterm_cif: 'CIF',
+    incoterm_cfr: 'CFR',
+    incoterm_exw: 'EXW',
+    incoterm_otro: 'Otro',
   },
 
   zh: {
@@ -662,6 +908,7 @@ const translations: Record<Language, TranslationKeys> = {
     footerNav: '导航',
     footerFollow: '关注我们',
     footerLang: '语言',
+    footerDesc: '自2008年以来，全球大宗商品中介已促进50多个国家的贸易。',
 
     // FAQ
     faqTitle: '常见问题',
@@ -681,13 +928,94 @@ const translations: Record<Language, TranslationKeys> = {
     faqA7: '是的。我们经验丰富的团队跨越多个时区运作，提供多语言的全天候支持，以确保顺畅的运营和及时的响应。',
     faqQ8: '我如何成为 JHI 的供应商或买家？',
     faqA8: '请通过我们的联系或沟通版块提交您的信息。经过初步咨询和严格尽职调查后，我们会将您整合到全球网络中。',
-    faqQ9: '我的信息和交易保密吗？',
+    faqQ9: '我的信息 and 交易保密吗？',
     faqA9: '绝对保密。我们以最高的谨慎度和诚信标准运营。所有交易和客户数据均受到严格保密协议的保护。',
     faqQ10: '如果货物运输出现问题怎么办？',
     faqA10: '我们专门的运营团队积极监控每批货物。在极少数出现问题的情况下，我们将利用全球网络和经验迅速解决挑战，将干扰降至最低。',
 
     // Shared
     loading: '加载中...',
+    backToHome: '返回首页',
+    signOut: '退出登录',
+
+    // Broker Portal - Shared
+    brokerPortal: '代理商门户',
+
+    // Broker Portal - Login
+    loginTitle: '代理商门户',
+    loginSubtitle: '登录以访问您的代理商控制面板',
+    loginVerificationPending: '登录前请检查您的电子邮件以激活您的帐户。',
+    loginSubtitleSimple: '登录以管理您的报价',
+    loginLabelEmail: '电子邮件地址',
+    loginLabelPassword: '密码',
+    loginButton: '登录',
+    loginButtonLoading: '登录中...',
+    loginNoAccount: '还不是代理商？',
+    loginRequestAccess: '在此申请访问权限',
+    loginSuccessTitle: '欢迎',
+    loginSuccessDesc: '登录成功。',
+    loginErrorTitle: '错误',
+    loginErrorDesc: '内部登录错误。',
+
+    // Broker Portal - Register
+    registerTitle: '代理商注册',
+    registerSubtitle: '创建您的帐户以管理报价',
+    registerLabelFirstName: '名字',
+    registerLabelLastName: '姓氏',
+    registerButton: '注册',
+    registerButtonLoading: '注册中...',
+    registerHaveAccount: '已经有帐户了？',
+    registerLoginHere: '在此登录',
+    registerSuccessTitle: '注册成功',
+    registerSuccessDesc: '请检查您的收件箱以验证您的帐户。',
+    registerErrorTitle: '错误',
+
+    // Broker Portal - Dashboard
+    dashboardWelcome: '欢迎，{name}',
+    howItWorksTitle: '它是如何運作的？',
+    howItWorksStep1Title: '寻找客户',
+    howItWorksStep1Desc: '确定大宗商品（糖、鸡肉、谷物、咖啡等）的最终买家',
+    howItWorksStep2Title: '获取报价',
+    howItWorksStep2Desc: '通过我们的聊天机器人或表格从 JHI 获取基础价格和物流信息。',
+    howItWorksStep3Title: '应用佣金',
+    howItWorksStep3Desc: '在向买家展示的价格中加入您的中间利润（利潤）。',
+    howItWorksStep4Title: '监控进度',
+    howItWorksStep4Desc: '从此门户网站咨询每笔业务的实时状态。',
+    howItWorksStep5Title: '收取佣金',
+    howItWorksStep5Desc: '当交易完成并付款后，JHI 会将约定的佣金转账给您。',
+    activeQuotesTitle: '您的活动报价',
+    noQuotes: '您还没有注册报价。探索我们的服务并索取您的第一个基础价格。',
+    tableHeaderBusiness: '业务 / 产品',
+    tableHeaderVolume: '成交量',
+    tableHeaderDate: '日期',
+    tableHeaderStatus: '状态',
+    tableIncoterm: '贸易术语',
+    tableVolumeTBD: '待定',
+    newQuoteRequestTitle: '索取新报价',
+    newQuoteRequestSubtitle: '填写下表并说明您的客户要求，以开始新的报价流程。',
+
+    // HubSpot Display Mapping
+    status_levantando_precio: '获取价格中',
+    status_validando_logistica: '验证物流中',
+    status_preparando_cotizacion_formal: '准备正式报价',
+    status_cotizacion_enviada: '报价已发送',
+    status_en_negociacion: '谈判中',
+    status_ganada: '已获胜',
+    status_perdida: '已丢失',
+    
+    product_azucar: '糖',
+    product_chicken_paws: '鸡爪',
+    product_granos: '谷物',
+    product_cafe: '咖啡',
+    product_aceites: '食用油',
+    product_lacteos: '乳制品',
+    product_otro: '其他',
+
+    incoterm_fob: 'FOB',
+    incoterm_cif: 'CIF',
+    incoterm_cfr: 'CFR',
+    incoterm_exw: 'EXW',
+    incoterm_otro: '其他',
   },
 };
 
