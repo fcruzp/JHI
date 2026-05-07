@@ -34,7 +34,8 @@ type EmailTemplateName =
   | 'levantando_precio'
   | 'internal_notification'
   | 'status_update'
-  | 'client_comment_internal';
+  | 'client_comment_internal'
+  | 'skay_trigger';
 
 interface EmailTemplateData {
   levantando_precio: {
@@ -84,6 +85,17 @@ interface EmailTemplateData {
     reference?: string;
     comment: string;
     summary?: string;
+  };
+  skay_trigger: {
+    dealId: string;
+    clientName: string;
+    clientEmail: string;
+    applicantRole: string;
+    commodity: string;
+    volumeMt: string;
+    incoterm: string;
+    targetPrice?: string;
+    attachmentsStatus?: string;
   };
 }
 
@@ -160,6 +172,54 @@ export class EmailService {
     data: EmailTemplateData['client_comment_internal']
   ): Promise<{ success: boolean; messageId?: string }> {
     return this.sendTemplate('client_comment_internal', this.ADMIN_INTERNAL_EMAIL, data);
+  }
+
+  /**
+   * Send plain-text trigger email to Virtual CEO (Skay Huge)
+   */
+  static async sendSkayTrigger(
+    data: EmailTemplateData['skay_trigger']
+  ): Promise<{ success: boolean; messageId?: string }> {
+    try {
+      const subject = `[SYSTEM TRIGGER] New Lead - Deal ID: ${data.dealId}`;
+      const to = 'skay.huge@jhugeint.com';
+      
+      const textBody = `SYSTEM NOTIFICATION: NEW JHUGE PORTAL REQUEST
+
+[HUBSPOT_DEAL_ID]: ${data.dealId}
+[CLIENT_NAME]: ${data.clientName}
+[CLIENT_EMAIL]: ${data.clientEmail}
+[APPLICANT_ROLE]: ${data.applicantRole}
+[COMMODITY]: ${data.commodity}
+[VOLUME_MT]: ${data.volumeMt}
+[INCOTERM]: ${data.incoterm}
+[TARGET_PRICE]: ${data.targetPrice || 'N/A'}
+
+[ATTACHMENTS_STATUS]: ${data.attachmentsStatus || 'No documents uploaded yet.'}`;
+
+      if (!resend) {
+        console.log(`[Email Mock] Would send SKAY TRIGGER to ${to}:`, { subject, text: textBody });
+        return { success: true };
+      }
+
+      const { data: emailData, error } = await resend.emails.send({
+        from: `J Huge International <${EMAIL_FROM}>`,
+        to,
+        subject,
+        text: textBody,
+      });
+
+      if (error) {
+        console.error('[Email Service] Failed to send Skay Trigger:', error);
+        return { success: false };
+      }
+
+      console.log('[Email Service] Skay Trigger sent successfully to', to, '- ID:', emailData?.id);
+      return { success: true, messageId: emailData?.id };
+    } catch (error) {
+      console.error('[Email Service] Error sending Skay Trigger:', error);
+      return { success: false };
+    }
   }
 
   /**

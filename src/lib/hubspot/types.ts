@@ -207,6 +207,7 @@ export interface CotizacionData {
   amount?: string | number;
   description?: string;
   notes?: string;
+  hs_deal_role?: 'Broker' | 'Direct Buyer';
 }
 
 export interface CotizacionUpdateData {
@@ -229,6 +230,7 @@ export interface CotizacionUpdateData {
   estadodela_cotizacion?: EstadoOperativoCotizacion;
   trial_solicitado?: boolean;
   resultadodela_cotizacion?: ResultadoDeCotizacion;
+  hs_deal_role?: 'Broker' | 'Direct Buyer';
 }
 
 // Full cotizacion with all fields (for admin panel display)
@@ -263,6 +265,8 @@ export interface Cotizacion extends HubSpotObject {
     associatedcompanyId?: string;
     associatedcontactId?: string;
     
+    hs_deal_role?: string;
+
     [key: string]: string | undefined;
   };
 }

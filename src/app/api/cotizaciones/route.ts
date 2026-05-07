@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { HubSpotService } from '@/lib/hubspot/service';
 import { CotizacionValidator } from '@/lib/cotizacion/validator';
 import { CotizacionData, HubSpotObject, EstadoCotizacion } from '@/lib/hubspot/types';
+import { EmailService } from '@/lib/email/service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,12 +25,38 @@ export async function POST(request: NextRequest) {
 
     // Find or create contact
     let contactId: string | undefined;
+    let finalRole: 'Broker' | 'Direct Buyer' = 'Broker'; // Default assumption per new rules
+    let contactName = 'Unknown';
+
     if (data.contactEmail) {
-      const contact = await HubSpotService.contacts.findOrCreate({
-        email: data.contactEmail,
-        firstName: data.notes?.split(' ')[0], // Try to extract name from notes
-        lastName: data.notes?.split(' ').slice(1).join(' '),
-      });
+      // Use findByEmail first to check the properties before creating
+      let contact = await HubSpotService.contacts.findByEmail(data.contactEmail);
+      
+      const parsedFirstName = data.notes?.split(' ')[0] || '';
+      const parsedLastName = data.notes?.split(' ').slice(1).join(' ') || '';
+      contactName = parsedFirstName + (parsedLastName ? ` ${parsedLastName}` : '');
+
+      if (!contact) {
+        contact = await HubSpotService.contacts.create({
+          email: data.contactEmail,
+          firstName: parsedFirstName,
+          lastName: parsedLastName,
+          rol_en_la_operacion: 'broker', // default to broker if creating new
+        });
+        finalRole = 'Broker';
+      } else {
+        const existingRole = contact.properties.rol_en_la_operacion;
+        contactName = `${contact.properties.firstname || ''} ${contact.properties.lastname || ''}`.trim() || contactName;
+        
+        if (!existingRole) {
+          // Update missing role to broker
+          await HubSpotService.contacts.update(contact.id, { rol_en_la_operacion: 'broker' });
+          finalRole = 'Broker';
+        } else {
+          // Determine deal role based on existing contact role
+          finalRole = (existingRole === 'broker') ? 'Broker' : 'Direct Buyer';
+        }
+      }
       contactId = contact?.id;
     }
 
@@ -41,7 +68,23 @@ export async function POST(request: NextRequest) {
       ...data,
       contactId,
       companyId,
+      hs_deal_role: finalRole,
     });
+
+    // Send System Trigger to Virtual CEO (Skay Huge)
+    if (data.contactEmail) {
+      await EmailService.sendSkayTrigger({
+        dealId: cotizacion.id,
+        clientName: contactName || data.contactEmail,
+        clientEmail: data.contactEmail,
+        applicantRole: finalRole,
+        commodity: data.producto_cotizado,
+        volumeMt: String(data.amount || 'N/A'),
+        incoterm: String(data.incoterm).toUpperCase(),
+        targetPrice: 'N/A', // Assuming not collected in basic form
+        attachmentsStatus: 'No documents uploaded yet.'
+      });
+    }
 
     return NextResponse.json(
       { success: true, cotizacionId: cotizacion.id, data: cotizacion },

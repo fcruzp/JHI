@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,15 +9,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Text and action are required' }, { status: 400 });
     }
 
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: 'AI API Key not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'OpenRouter API Key not configured' }, { status: 500 });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: process.env.GOOGLE_MODEL || 'gemini-3-flash-preview' 
+    const openai = new OpenAI({
+      apiKey: apiKey,
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': 'https://jhugeint.com',
+        'X-Title': 'J Huge International',
+      },
     });
+
+    const model = process.env.GOOGLE_MODEL || 'google/gemini-3.1-flash-lite-preview';
 
     let prompt = '';
 
@@ -63,9 +69,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const processedText = response.text().trim();
+    const completion = await openai.chat.completions.create({
+      model: model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+    });
+
+    const processedText = completion.choices[0]?.message?.content?.trim() || '';
 
     return NextResponse.json({ processedText });
   } catch (error) {

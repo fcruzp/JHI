@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
 import { HubSpotService } from '@/lib/hubspot/service';
 import { EmailService } from '@/lib/email/service';
@@ -297,32 +296,37 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = SYSTEM_PROMPTS[language] || SYSTEM_PROMPTS.es;
 
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-    const model = genAI.getGenerativeModel({
-      model: process.env.GOOGLE_MODEL || 'gemini-3-flash-preview',
-      systemInstruction: systemPrompt,
-    });
-
-    // Build full conversation for Gemini (no startChat needed)
-    const contents = [
-      ...messages
-        .slice(-20) // Keep last 20 messages for context
-        .map((msg: { role: string; content: string }) => ({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.content }],
-        })),
-      { role: 'user', parts: [{ text: message }] },
-    ];
-
-    const result = await model.generateContent({
-      contents,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2000,
+    const openai = new OpenAI({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': 'https://jhugeint.com', // Optional, for OpenRouter rankings
+        'X-Title': 'J Huge International', // Optional
       },
     });
 
-    const reply = result.response.text() || 'I apologize, I could not process your request.';
+    const model = process.env.GOOGLE_MODEL || 'google/gemini-3.1-flash-lite-preview';
+
+    // Build full conversation for OpenAI
+    const messagesContext = [
+      { role: 'system', content: systemPrompt },
+      ...messages
+        .slice(-20) // Keep last 20 messages for context
+        .map((msg: { role: string; content: string }) => ({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+        })),
+      { role: 'user', content: message },
+    ];
+
+    const completion = await openai.chat.completions.create({
+      model: model,
+      messages: messagesContext as any,
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
+
+    const reply = completion.choices[0]?.message?.content || 'I apologize, I could not process your request.';
 
     // Check if the AI response contains an action JSON block
     const actionData = parseActionJson(reply);
@@ -370,12 +374,29 @@ export async function POST(request: NextRequest) {
         };
 
         try {
-          // First find or create the contact
-          const contact = await HubSpotService.contacts.findOrCreate({
-            email: email,
-            firstName: name.split(' ')[0] || '',
-            lastName: name.split(' ').slice(1).join(' ') || '',
-          });
+          // Resolve Contact and Role
+          let finalRole: 'Broker' | 'Direct Buyer' = 'Broker';
+          let contact = await HubSpotService.contacts.findByEmail(email);
+          const parsedFirstName = name.split(' ')[0] || '';
+          const parsedLastName = name.split(' ').slice(1).join(' ') || '';
+
+          if (!contact) {
+            contact = await HubSpotService.contacts.create({
+              email: email,
+              firstName: parsedFirstName,
+              lastName: parsedLastName,
+              rol_en_la_operacion: 'broker',
+            });
+            finalRole = 'Broker';
+          } else {
+            const existingRole = contact.properties.rol_en_la_operacion;
+            if (!existingRole) {
+              await HubSpotService.contacts.update(contact.id, { rol_en_la_operacion: 'broker' });
+              finalRole = 'Broker';
+            } else {
+              finalRole = (existingRole === 'broker') ? 'Broker' : 'Direct Buyer';
+            }
+          }
 
           // Map to new schema with normalized values
           const cotizacionData: CotizacionData = {
@@ -388,6 +409,7 @@ export async function POST(request: NextRequest) {
             contactEmail: email,
             amount: quantity,
             description: `Origin: ${origin}\nDestination: ${destination}\nIncoterms: ${incoterms}\nCommodity: ${commodityDisplay}\nCategory: ${commodityCategory || 'N/A'}\nProduct: ${commodityProduct || 'N/A'}\nContact: ${email}\nNotes: ${notes || 'N/A'}`,
+            hs_deal_role: finalRole,
           };
 
           // Create cotizacion with contact association
@@ -408,6 +430,19 @@ export async function POST(request: NextRequest) {
             // eslint-disable-next-line no-console
             console.error('[Chat] Failed to send confirmation email:', emailError);
           }
+
+          // Send System Trigger to Virtual CEO (Skay Huge)
+          await EmailService.sendSkayTrigger({
+            dealId: cotizacion.id,
+            clientName: name || email,
+            clientEmail: email,
+            applicantRole: finalRole,
+            commodity: commodityDisplay || commodity,
+            volumeMt: String(quantity || 'N/A'),
+            incoterm: String(incoterms || 'N/A').toUpperCase(),
+            targetPrice: 'N/A', // Assuming not collected in basic form
+            attachmentsStatus: 'No documents uploaded yet.'
+          });
 
           // eslint-disable-next-line no-console
           console.log('[Chat] Contact ID:', contact.id, '| Cotización created successfully, ID:', cotizacion.id);

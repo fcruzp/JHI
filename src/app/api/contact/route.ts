@@ -54,16 +54,7 @@ export async function POST(request: NextRequest) {
       const normalizeProducto = (val: string): ProductoCotizado => {
         const lower = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         if (lower.includes('azucar') || lower.includes('sugar')) return 'azucar';
-        if (
-          lower.includes('chicken') ||
-          lower.includes('paw') ||
-          lower.includes('meat') ||
-          lower.includes('carne') ||
-          lower.includes('pork') ||
-          lower.includes('cerdo') ||
-          lower.includes('beef') ||
-          lower.includes('res')
-        ) {
+        if (lower.includes('chicken') || lower.includes('paw')) {
           return 'chicken_paws';
         }
         if (lower.includes('grano') || lower.includes('grain')) return 'granos';
@@ -74,12 +65,29 @@ export async function POST(request: NextRequest) {
         return 'otro';
       };
 
-      // First find or create contact
-      const contact = await HubSpotService.contacts.findOrCreate({
-        email: email,
-        firstName: name.split(' ')[0] || '',
-        lastName: name.split(' ').slice(1).join(' ') || '',
-      });
+      // Resolve Contact and Role
+      let finalRole: 'Broker' | 'Direct Buyer' = 'Broker';
+      let contact = await HubSpotService.contacts.findByEmail(email);
+      const parsedFirstName = name.split(' ')[0] || '';
+      const parsedLastName = name.split(' ').slice(1).join(' ') || '';
+
+      if (!contact) {
+        contact = await HubSpotService.contacts.create({
+          email: email,
+          firstName: parsedFirstName,
+          lastName: parsedLastName,
+          rol_en_la_operacion: 'broker',
+        });
+        finalRole = 'Broker';
+      } else {
+        const existingRole = contact.properties.rol_en_la_operacion;
+        if (!existingRole) {
+          await HubSpotService.contacts.update(contact.id, { rol_en_la_operacion: 'broker' });
+          finalRole = 'Broker';
+        } else {
+          finalRole = (existingRole === 'broker') ? 'Broker' : 'Direct Buyer';
+        }
+      }
 
       // Map to new cotizacion schema
       const cotizacionData: CotizacionData = {
@@ -92,6 +100,7 @@ export async function POST(request: NextRequest) {
         contactEmail: email,
         amount: String(quantity).replace(/[^0-9.]/g, '') || quantity, // Extract only numeric part
         description: `Origin: ${origin}\nDestination: ${destination}\nIncoterms: ${incoterms}\nCommodity: ${commodityDisplay}\nCategory: ${commodityCategory || 'N/A'}\nProduct: ${commodityProduct || 'N/A'}\nMessage: ${message}`,
+        hs_deal_role: finalRole,
       };
 
       // Create cotizacion
@@ -128,6 +137,19 @@ export async function POST(request: NextRequest) {
         // eslint-disable-next-line no-console
         console.error('[Contact] Failed to send confirmation email:', emailError);
       }
+
+      // Send System Trigger to Virtual CEO (Skay Huge)
+      await EmailService.sendSkayTrigger({
+        dealId: cotizacion.id,
+        clientName: name || email,
+        clientEmail: email,
+        applicantRole: finalRole,
+        commodity: commodityDisplay,
+        volumeMt: String(quantity || 'N/A'),
+        incoterm: String(incoterms || 'N/A').toUpperCase(),
+        targetPrice: 'N/A', // Assuming not collected in basic form
+        attachmentsStatus: 'No documents uploaded yet.'
+      });
       
       // eslint-disable-next-line no-console
       console.log('[Contact] Contact ID:', contact.id, '| Cotización created with ID:', cotizacion.id);
